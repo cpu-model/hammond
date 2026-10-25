@@ -22,3 +22,11 @@ No waveform distortion, leakage, key click, filters, drawbars, vibrato or
 Leslie are simulated. Output remains ideal sine waves.
 
 The old `generator.Bank` remains as a generic oscillator test utility.
+
+## Regression check
+
+The generator's upper-wheel speed-group offset was corrected to index 5
+for wheel 85 (F group). The new cross-component test compares all 91
+rendered signals against the independently calculated nominal frequency
+model across 2,400 samples. This is a consistency test, not a physical
+measurement of a Hammond generator.
