@@ -2,7 +2,6 @@ package registration
 
 import (
  "errors"
- "math"
 )
 
 // ContactTiming is an explicitly configurable research model, not a
@@ -69,6 +68,6 @@ func (m *TimedManual) Mix(frame []float64) float64 {
    if wheel!=0 { sum+=m.manual.level[contact]*frame[wheel-1] }
   }
  }
- if m.clock<math.MaxUint64 { m.clock++ }
+ if m.clock < ^uint64(0) { m.clock++ }
  return sum
 }
