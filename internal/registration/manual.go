@@ -40,11 +40,11 @@ func (m *Manual) Key(key int, down bool) error {
 }
 
 // SetDrawbar accepts an organ stop position from 0 (off) to 8 (full).
-// The current linear gain is an explicitly provisional placeholder.
+// The gain follows a nominal 3 dB-per-step law, not a circuit simulation.
 func (m *Manual) SetDrawbar(index, position int) error {
  if index<0 || index>=Harmonics { return fmt.Errorf("drawbar index %d outside 0..8",index) }
  if position<0 || position>8 { return fmt.Errorf("drawbar position %d outside 0..8",position) }
- m.level[index]=float64(position)/8
+ m.level[index]=DrawbarGain(position)
  return nil
 }
 
