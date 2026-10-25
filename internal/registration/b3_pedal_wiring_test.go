@@ -8,6 +8,8 @@ func TestCompileB3PedalWiringRequiresSourceAndBusbars(t *testing.T) {
   Busbars: PedalBusRouting{1,1,2,2,3,3,4,4},
  }
  if _,_,err:=CompileB3PedalWiring(e); err==nil { t.Fatal("accepted missing source") }
+ e.Source=" \t\n "
+ if _,_,err:=CompileB3PedalWiring(e); err==nil { t.Fatal("accepted whitespace-only source") }
  e.Source="synthetic test fixture, not historical B3 wiring"
  routing,bus,err:=CompileB3PedalWiring(e)
  if err!=nil { t.Fatal(err) }
