@@ -1,9 +1,11 @@
 package main
 
 import (
+ "encoding/json"
  "flag"
  "log"
  "math"
+ "path/filepath"
  "os"
  "strconv"
  "strings"
@@ -24,6 +26,7 @@ func main() {
  gain:=flag.Float64("gain",0.02,"fixed linear output gain")
  step:=flag.Int("step",0,"additional contact closure delay per drawbar in samples (0..100)")
  harmonic2:=flag.Float64("harmonic2",0,"experimental second-harmonic level for all tonewheels (0..1)")
+ metrics:=flag.String("metrics","","optional JSON path for reproducible render measurements")
  wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
  flag.Parse()
  if *key<1 || *key>61 || *seconds<1 || *seconds>30 { log.Fatal("key must be 1..61 and seconds 1..30") }
@@ -60,14 +63,35 @@ func main() {
  samples:=make([]float64,rate**seconds)
  peak:=0.0
  clipped:=0
+ sumSquares:=0.0
  releaseSample:=int(*release*rate)
  if *release==0 {releaseSample=len(samples)}
  for i:=range samples {
   if i==releaseSample {if err:=upper.Key(*key-1,false);err!=nil {log.Fatal(err)}}
   samples[i]=e.Next()
   samples[i]*=*gain
+  sumSquares+=samples[i]*samples[i]
   if math.Abs(samples[i])>peak {peak=math.Abs(samples[i])}
   if math.Abs(samples[i])>1 {clipped++}
+ }
+ if *metrics!="" {
+  record:=struct {
+   SampleRate int `json:"sample_rate"`
+   Key int `json:"key"`
+   Drawbars string `json:"drawbars"`
+   DurationSeconds int `json:"duration_seconds"`
+   ReleaseSeconds float64 `json:"release_seconds"`
+   Gain float64 `json:"gain"`
+   ContactStepSamples int `json:"contact_step_samples"`
+   SecondHarmonic float64 `json:"second_harmonic"`
+   WheelHarmonics string `json:"wheel_harmonics"`
+   Peak float64 `json:"peak"`
+   RMS float64 `json:"rms"`
+   OverRangeSamples int `json:"over_range_samples"`
+  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
+  data,err:=json.MarshalIndent(record,"","  ")
+  if err!=nil {log.Fatal(err)}
+  if err:=os.WriteFile(filepath.Clean(*metrics),append(data,'\n'),0644);err!=nil {log.Fatal(err)}
  }
  if clipped>0 {log.Printf("WARNING: %d samples exceed PCM full scale; lower -gain",clipped)}
  f,err:=os.Create(*out)
