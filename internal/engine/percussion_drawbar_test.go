@@ -17,9 +17,11 @@ func TestUpperNinthDrawbarCancellation(t *testing.T) {
  if err:=upper.Key(0,true);err!=nil {t.Fatal(err)}
  if err:=lower.Key(0,true);err!=nil {t.Fatal(err)}
  if err:=e.SetHarmonicPercussion(0,3,0.5,0.9);err!=nil {t.Fatal(err)}
+ for i:=0;i<150;i++ {e.NextPaths()}
  if !upperPercussionCut(upper) {t.Fatal("upper drawbar not cancelled")}
  if upperPercussionCut(lower) {t.Fatal("lower drawbar cancelled")}
  if err:=e.SetHarmonicPercussion(0,3,0,0.9);err!=nil {t.Fatal(err)}
+ for i:=0;i<150;i++ {e.NextPaths()}
  if upperPercussionCut(upper) {t.Fatal("drawbar did not return")}
 }
 
