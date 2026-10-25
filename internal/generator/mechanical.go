@@ -11,6 +11,7 @@ import (
 type MechanicalBank struct {
  phase [12]float64
  step [12]float64
+ harmonic2 float64
 }
 
 var driveTeeth = [12]float64{85,71,67,105,103,84,74,98,96,88,67,108}
@@ -33,7 +34,17 @@ func NewMechanicalBank(sampleRate float64) (*MechanicalBank, error) {
  return b,nil
 }
 
-// Next writes 91 phase-continuous ideal sine signals. Every wheel advances
+// SetSecondHarmonic enables a bounded, uncalibrated pickup-shape experiment.
+// Zero preserves the original ideal sine output; no factory spectrum is implied.
+func (b *MechanicalBank) SetSecondHarmonic(level float64) error {
+ if math.IsNaN(level)||math.IsInf(level,0)||level<0||level>1 {
+  return errors.New("second harmonic level must be finite and between 0 and 1")
+ }
+ b.harmonic2=level
+ return nil
+}
+
+// Next writes 91 phase-continuous signals. Every wheel advances
 // even when no keys are held. The 192-tooth wheels 85..91 use gear groups 5..11.
 func (b *MechanicalBank) Next(dst []float64) {
  if len(dst)<91 { panic("generator: destination too short") }
@@ -42,7 +53,8 @@ func (b *MechanicalBank) Next(dst []float64) {
   teeth := 2 << (n/12)
   if n>=84 { group=n-84+5; teeth=192 }
   cycles := math.Mod(float64(teeth)*b.phase[group],1)
-  dst[n] = math.Sin(2*math.Pi*cycles)
+  angle:=2*math.Pi*cycles
+  dst[n] = (math.Sin(angle)+b.harmonic2*math.Sin(2*angle))/(1+b.harmonic2)
  }
  for i:=range b.phase {
   p:=b.phase[i]+b.step[i]
