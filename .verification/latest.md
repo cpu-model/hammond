@@ -1,8 +1,8 @@
 # Latest Go verification
 
-- Source commit: e5ddadfe9b5e8b439c1026c701ac98f7eae2f364
-- Run: https://github.com/cpu-model/hammond/actions/runs/40212667209
-- UTC: 2026-10-25T16:39:06Z
+- Source commit: f282834505793908bee13144653924f53beb5d3d
+- Run: https://github.com/cpu-model/hammond/actions/runs/40212723473
+- UTC: 2026-10-25T16:39:45Z
 
 | Check | Exit code |
 | --- | ---: |
@@ -15,12 +15,12 @@
 ?   	github.com/cpu-model/hammond/cmd/contactdemo	[no test files]
 ?   	github.com/cpu-model/hammond/cmd/hammond	[no test files]
 ?   	github.com/cpu-model/hammond/cmd/manualdemo	[no test files]
-ok  	github.com/cpu-model/hammond/internal/electrical	0.006s
+ok  	github.com/cpu-model/hammond/internal/electrical	0.005s
 ?   	github.com/cpu-model/hammond/internal/wav	[no test files]
-ok  	github.com/cpu-model/hammond/internal/engine	0.441s
-ok  	github.com/cpu-model/hammond/internal/generator	0.354s
-ok  	github.com/cpu-model/hammond/internal/instrument	0.006s
-ok  	github.com/cpu-model/hammond/internal/registration	0.004s
+ok  	github.com/cpu-model/hammond/internal/engine	0.241s
+ok  	github.com/cpu-model/hammond/internal/generator	0.192s
+ok  	github.com/cpu-model/hammond/internal/instrument	0.001s
+ok  	github.com/cpu-model/hammond/internal/registration	0.003s
 ```
 
 ## vet output
