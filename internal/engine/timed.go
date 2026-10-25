@@ -39,6 +39,11 @@ func (e *TimedEngine) SetWheelSecondHarmonic(wheel int,level float64) error {
  return e.generator.SetWheelSecondHarmonic(wheel,level)
 }
 
+// SetWheelPhaseOffset configures the experimental phase of one shared wheel.
+func (e *TimedEngine) SetWheelPhaseOffset(wheel int,cycles float64) error {
+ return e.generator.SetWheelPhaseOffset(wheel,cycles)
+}
+
 // SetSecondHarmonic applies the same experimental shape to all wheels.
 func (e *TimedEngine) SetSecondHarmonic(level float64) error {
  return e.generator.SetSecondHarmonic(level)
