@@ -28,6 +28,7 @@ func main() {
  harmonic2:=flag.Float64("harmonic2",0,"experimental second-harmonic level for all tonewheels (0..1)")
  metrics:=flag.String("metrics","","optional JSON path for reproducible render measurements")
  wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
+ phaseSeed:=flag.Uint64("phase-seed",0,"nonzero seed for reproducible experimental tonewheel phases")
  wheelPhases:=flag.String("wheel-phases","","comma-separated wheel:phase-in-cycles overrides, e.g. 37:0.25,49:0.5")
  flag.Parse()
  if *key<1 || *key>61 || *seconds<1 || *seconds>30 { log.Fatal("key must be 1..61 and seconds 1..30") }
@@ -58,6 +59,7 @@ func main() {
    if err:=e.SetWheelSecondHarmonic(wheel,level);err!=nil {log.Fatal(err)}
   }
  }
+ if *phaseSeed!=0 {if err:=e.SetPhaseSeed(*phaseSeed);err!=nil{log.Fatal(err)}}
  if *wheelPhases!="" {
   seen:=make(map[int]bool)
   for _,item:=range strings.Split(*wheelPhases,",") {
@@ -101,10 +103,11 @@ func main() {
    SecondHarmonic float64 `json:"second_harmonic"`
    WheelHarmonics string `json:"wheel_harmonics"`
    WheelPhases string `json:"wheel_phases"`
+   PhaseSeed uint64 `json:"phase_seed"`
    Peak float64 `json:"peak"`
    RMS float64 `json:"rms"`
    OverRangeSamples int `json:"over_range_samples"`
-  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
+  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
   data,err:=json.MarshalIndent(record,"","  ")
   if err!=nil {log.Fatal(err)}
   if err:=os.WriteFile(filepath.Clean(*metrics),append(data,'\n'),0644);err!=nil {log.Fatal(err)}
