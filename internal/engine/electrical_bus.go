@@ -208,6 +208,7 @@ func (e *ElectricalBusEngine) NextExperimentalPedalCircuit(outputNode string) (u
  for len(queue)>0 {
   node:=queue[0];queue=queue[1:]
   for _,next:=range adjacency[node] {
+   if next=="" {continue} // ground is not a signal-transfer bridge
    if !visited[next] {visited[next]=true;queue=append(queue,next)}
   }
  }
