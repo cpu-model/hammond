@@ -169,3 +169,9 @@ select.
 contact assignments with the generator terminal numbering and
 the four busbar routes. Until then the existing pedal routing
 table remains experimental.
+
+## Verified B3/C3 pedal frequency table source
+
+The B3/C3 service manual itself contains TABLE III, Frequency Numbers Assigned to Keys and Pedals, with 25 pedal rows and eight harmonic columns. This is a more direct B3-specific source than the multi-model Figure 24 reference. Source: https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf
+
+Columns: fundamental, third harmonic, second harmonic, fourth, sixth, eighth, tenth, twelfth. The third-harmonic entries for pedals 8 through 12 are printed as dashes and must remain unconnected, not assigned invented frequency numbers. This table can be transcribed into PedalRouting after checking the actual contact order against the pedal wiring diagram. Do not assume the table column order matches physical contact order.
