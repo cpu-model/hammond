@@ -28,6 +28,9 @@ func main() {
  harmonic2:=flag.Float64("harmonic2",0,"experimental second-harmonic level for all tonewheels (0..1)")
  metrics:=flag.String("metrics","","optional JSON path for reproducible render measurements")
  wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
+ percussionLevel:=flag.Float64("percussion-level",0,"experimental percussion level 0..1")
+ percussionDecay:=flag.Float64("percussion-decay",0.9995,"per-sample decay 0..1 exclusive")
+ percussionWheel:=flag.Int("percussion-wheel",0,"generator wheel 1..91; zero uses key third-harmonic contact")
  keyClick:=flag.Float64("key-click",0,"experimental key-click level from 0 to 1")
  phaseSeed:=flag.Uint64("phase-seed",0,"nonzero seed for reproducible experimental tonewheel phases")
  wheelPhases:=flag.String("wheel-phases","","comma-separated wheel:phase-in-cycles overrides, e.g. 37:0.25,49:0.5")
@@ -79,6 +82,11 @@ func main() {
  if err:=upper.SetKeyClick(*keyClick);err!=nil {log.Fatal(err)}
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
  for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
+ if *percussionLevel!=0 {
+  wheel:=*percussionWheel
+  if wheel==0 {wheel=int(routing[*key-1][3])}
+  if err:=e.SetPercussion(0,wheel,*percussionLevel,*percussionDecay);err!=nil {log.Fatal(err)}
+ }
  samples:=make([]float64,rate**seconds)
  peak:=0.0
  clipped:=0
@@ -107,10 +115,13 @@ func main() {
    WheelPhases string `json:"wheel_phases"`
    PhaseSeed uint64 `json:"phase_seed"`
    KeyClick float64 `json:"key_click"`
+   PercussionLevel float64 `json:"percussion_level"`
+   PercussionDecay float64 `json:"percussion_decay"`
+   PercussionWheel int `json:"percussion_wheel"`
    Peak float64 `json:"peak"`
    RMS float64 `json:"rms"`
    OverRangeSamples int `json:"over_range_samples"`
-  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
+  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
   data,err:=json.MarshalIndent(record,"","  ")
   if err!=nil {log.Fatal(err)}
   if err:=os.WriteFile(filepath.Clean(*metrics),append(data,'\n'),0644);err!=nil {log.Fatal(err)}
