@@ -17,16 +17,18 @@ func main() {
  out:=flag.String("out","manual.wav","output WAV file")
  key:=flag.Int("key",37,"key number 1..61 (37 is middle C)")
  seconds:=flag.Int("seconds",3,"duration 1..30 seconds")
+ drawbars:=flag.String("drawbars","888000000","nine drawbar positions 0..8")
  flag.Parse()
  if *key<1 || *key>61 || *seconds<1 || *seconds>30 { log.Fatal("key must be 1..61 and seconds 1..30") }
+ if len(*drawbars)!=9 {log.Fatal("drawbars must contain nine digits 0..8")}
+ for _,ch:=range *drawbars {if ch<'0'||ch>'8' {log.Fatal("drawbars must contain nine digits 0..8")}}
  const rate=48000
  routing:=registration.B3ManualRouting()
  e,err:=engine.New(rate,routing,routing)
  if err!=nil { log.Fatal(err) }
  upper,_:=e.Manual(0)
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
- // 888000000: first three drawbars fully out.
- for d:=0;d<3;d++ { if err:=upper.SetDrawbar(d,8);err!=nil { log.Fatal(err) } }
+ for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
  samples:=make([]float64,rate**seconds)
  e.Render(samples)
  // Conservative peak normalization for this offline demonstration.
@@ -37,5 +39,5 @@ func main() {
  if err!=nil { log.Fatal(err) }
  if err:=wav.WriteMono16(f,rate,samples);err!=nil { _=f.Close();log.Fatal(err) }
  if err:=f.Close();err!=nil { log.Fatal(err) }
- log.Printf("wrote %s (key %d, registration 888000000, ideal sine mix)",*out,*key)
+ log.Printf("wrote %s (key %d, registration %s, ideal sine mix)",*out,*key,*drawbars)
 }
