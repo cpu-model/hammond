@@ -5,7 +5,10 @@ package electrical
 // schematic (PDF page 72). It deliberately does not assert where the
 // external busbar, drawbar, filter, or ground wires terminate.
 //
-// The pairs are R81--R84, R82--R85, and R83--R86. The\n// right-hand ends join a single vertical rail in the schematic.\n// Their left-hand inputs remain distinct; no other junctions are assumed.
+// The pairs are R81--R84, R82--R85, and R83--R86.
+// Their right-hand ends share a rail in the interpreted schematic.
+// Their left-hand inputs remain distinct; no other junctions are assumed.
+// This partial reconstruction is not yet a verified factory netlist.
 //
 // Source: https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf
 // page 72, lower-left PEDAL SWITCH schematic.
