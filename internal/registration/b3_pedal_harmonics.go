@@ -1,10 +1,15 @@
 package registration
 
-// B3PedalHarmonics returns a provisional, unverified frequency-number matrix.
-// Its historical attribution to Table III has not been substantiated.
-// Do not use these values as factory-accurate B3 wiring without checking
-// Figure 13 of the Hammond early-model service manual row by row.
-// Contact order and busbar assignments are separate physical evidence.
+// B3PedalHarmonics gives generator frequency numbers in the harmonic-column
+// order printed in Table III of the Hammond B3/C3 Service Manual:
+// fundamental, third, second, fourth, sixth, eighth, tenth, twelfth.
+// Zero is a disconnected contact. This table is not physical contact order.
+//
+// Primary source: Hammond B3/C3 Service Manual, Table III,
+// "Frequency Numbers Assigned to Pedal Harmonics".
+// https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf
+// Independently reproduced in a searchable transcription at:
+// https://www.scribd.com/document/707266734/B3-Service-Manual-Hammond
 func B3PedalHarmonics() PedalRouting {
  return PedalRouting{
   {1,13,13,25,32,37,41,44},
