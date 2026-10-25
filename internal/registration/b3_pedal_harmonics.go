@@ -3,7 +3,7 @@ package registration
 // B3PedalHarmonics gives generator frequency numbers in the harmonic-column
 // order printed in Table III of the Hammond B3/C3 Service Manual:
 // fundamental, third, second, fourth, sixth, eighth, tenth, twelfth.
-// A zero is a printed dash (no connection), not an inferred tonewheel.
+// A zero denotes a reported disconnected position, not an inferred tonewheel.
 // This is NOT the physical switch-contact order. Do not pass the returned
 // table directly to NewPedalContactsState without verifying that mapping.
 //
