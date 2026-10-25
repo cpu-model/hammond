@@ -7,6 +7,7 @@ func TestB3PedalSwitchRoutesThroughBusbars(t *testing.T) {
  e:=PedalWiringEvidence{
   ContactOrder:PedalContactOrder{2,0,1,3,4,5,6,7},
   Busbars:PedalBusRouting{1,1,2,2,3,3,4,4},
+  Verified:true,
   Source:"synthetic integration fixture",
  }
  p,err:=NewB3PedalSwitch(e)
