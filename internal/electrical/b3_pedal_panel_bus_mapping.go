@@ -6,9 +6,10 @@ import "fmt"
 // caller-selected pedal buses. The mapping is explicit because the B3
 // schematic's panel terminals must not be guessed from drawbar order.
 // A mapping is ordered by panel row (R81, R82, R83), using bus indices 0..3.
-// This is a PARTIAL circuit assembly: the fourth pedal bus can feed the
-// separate R80/L20 path visible on the source schematic. An unmapped bus
-// is not necessarily silent in the complete B3 pedal circuit.
+// This is a PARTIAL circuit assembly. R80 and L20 are now represented
+// between panel row inputs, not as a separate fourth-bus branch. The
+// fourth bus has no assigned destination in this mapping; do not infer
+// that it is silent or connected elsewhere in the factory circuit.
 // Source identifies the evidence for this particular wiring decision.
 func ConnectPedalPanelInputs(panel PedalCircuitTopology, buses [3]int, source string) (PedalCircuitTopology,error) {
  if source=="" {return PedalCircuitTopology{},fmt.Errorf("pedal panel bus mapping requires evidence source")}
