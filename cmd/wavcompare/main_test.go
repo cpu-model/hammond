@@ -46,3 +46,16 @@ func TestReadWAVRejectsMalformed(t *testing.T){
  if err:=os.WriteFile(path,[]byte("RIFF"),0600);err!=nil{t.Fatal(err)}
  if _,err:=readWAV(path);err==nil{t.Fatal("accepted truncated WAV")}
 }
+
+func TestMagnitudeNonBinCenteredTone(t *testing.T) {
+ const rate=48000
+ const frequency=997.3
+ x:=make([]float64,4800)
+ for i:=range x{x[i]=0.4*math.Sin(2*math.Pi*frequency*float64(i)/rate)}
+ if got:=magnitude(x,frequency,rate);math.Abs(got-0.4)>0.001 {
+  t.Fatalf("off-bin fundamental amplitude %.6f, want approximately 0.4",got)
+ }
+ if got:=magnitude(x,2*frequency,rate);got>0.001 {
+  t.Fatalf("off-bin second harmonic leakage %.6f",got)
+ }
+}
