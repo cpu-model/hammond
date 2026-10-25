@@ -28,6 +28,7 @@ func NewTimed(sampleRate float64, upper, lower registration.Routing, upperTiming
  if err!=nil { return nil,fmt.Errorf("upper manual: %w",err) }
  l,err:=registration.NewTimedManual(lower,lowerTiming)
  if err!=nil { return nil,fmt.Errorf("lower manual: %w",err) }
+ u.SetNinthDrawbarTransition(int(math.Round(sampleRate*0.003)))
  return &TimedEngine{generator:bank,manuals:[2]*registration.TimedManual{u,l},sampleRate:sampleRate},nil
 }
 
