@@ -17,6 +17,7 @@ func TestB3PedalSharedGeneratorIntegration(t *testing.T) {
  wiring:=registration.PedalWiringEvidence{
   ContactOrder:registration.PedalContactOrder{0,1,2,3,4,5,6,7},
   Busbars:registration.PedalBusRouting{1,1,2,2,3,3,4,4},
+  Verified:true,
   Source:"synthetic integration fixture",
  }
  e,err:=NewElectricalBusEngineWithB3PedalWiring(48000,
