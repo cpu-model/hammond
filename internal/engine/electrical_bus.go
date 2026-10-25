@@ -13,6 +13,7 @@ import (
 // mechanical tonewheel bank. No drawbar or transformer stage is implied.
 type ElectricalBusEngine struct {
  generator *generator.MechanicalBank
+ sampleRate float64
  manuals [2]*registration.TimedManual
  buses [2]*electrical.NineBusNetwork
  frame [91]float64
@@ -33,7 +34,7 @@ func NewElectricalBusEngine(sampleRate float64,upper,lower registration.Routing,
  if err!=nil { return nil,fmt.Errorf("upper buses: %w",err) }
  lb,err:=electrical.NewNineBusNetwork(lowerBuses)
  if err!=nil { return nil,fmt.Errorf("lower buses: %w",err) }
- return &ElectricalBusEngine{generator:bank,manuals:[2]*registration.TimedManual{u,l},buses:[2]*electrical.NineBusNetwork{ub,lb}},nil
+ return &ElectricalBusEngine{generator:bank,sampleRate:sampleRate,manuals:[2]*registration.TimedManual{u,l},buses:[2]*electrical.NineBusNetwork{ub,lb}},nil
 }
 
 func (e *ElectricalBusEngine) Manual(index int) (*registration.TimedManual,error) {
@@ -144,6 +145,7 @@ func (e *ElectricalBusEngine) NextAllBuses() (upper,lower [9]float64,pedals [4]f
 // Validation completes before changing the engine's filter configuration.
 func (e *ElectricalBusEngine) EnableExperimentalPedalFilters(sampleRate float64,configs [4]electrical.PedalRLConfig) error {
  if e.pedal==nil { return fmt.Errorf("pedal network not configured") }
+ if sampleRate!=e.sampleRate { return fmt.Errorf("pedal filter sample rate %g does not match generator rate %g",sampleRate,e.sampleRate) }
  filters,err:=electrical.NewExperimentalPedalBusFilters(sampleRate,configs)
  if err!=nil { return err }
  e.experimentalPedalFilters=filters
