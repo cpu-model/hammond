@@ -12,6 +12,9 @@ type PedalWiringEvidence struct {
  ContactOrder PedalContactOrder
  Busbars PedalBusRouting
  Source string
+ // Verified is set only after independent comparison with the original
+ // B3/C3 physical contact and busbar wiring diagram.
+ Verified bool
 }
 
 // CompileB3PedalWiring produces a validated contact-level routing and
@@ -22,6 +25,9 @@ type PedalWiringEvidence struct {
 func CompileB3PedalWiring(e PedalWiringEvidence) (PedalRouting, PedalBusRouting, error) {
  if strings.TrimSpace(e.Source) == "" {
   return PedalRouting{}, PedalBusRouting{}, fmt.Errorf("pedal wiring source is required")
+ }
+ if !e.Verified {
+  return PedalRouting{}, PedalBusRouting{}, fmt.Errorf("B3 physical wiring has not been independently verified")
  }
  if err := e.Busbars.Validate(); err != nil {
   return PedalRouting{}, PedalBusRouting{}, err
