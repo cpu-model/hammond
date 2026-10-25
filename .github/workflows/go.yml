@@ -32,7 +32,7 @@ jobs:
           {
             echo '# Latest Go verification'
             echo
-            echo "- Source commit: \`$GITHUB_SHA\`"
+            echo "- Source commit: `$GITHUB_SHA`"
             echo "- Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
             echo "- UTC: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo
@@ -44,9 +44,9 @@ jobs:
             for name in test vet build; do
               echo
               echo "## $name output"
-              echo '\`\`\`text'
+              echo '```text'
               tail -n 120 "/tmp/hammond-$name.log"
-              echo '\`\`\`'
+              echo '```'
             done
           } > .verification/latest.md
           if (( test_code != 0 || vet_code != 0 || build_code != 0 )); then
