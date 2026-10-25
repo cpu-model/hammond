@@ -58,16 +58,22 @@ func main() {
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
  for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
  samples:=make([]float64,rate**seconds)
+ peak:=0.0
+ clipped:=0
  releaseSample:=int(*release*rate)
  if *release==0 {releaseSample=len(samples)}
  for i:=range samples {
   if i==releaseSample {if err:=upper.Key(*key-1,false);err!=nil {log.Fatal(err)}}
   samples[i]=e.Next()
   samples[i]*=*gain
+  if math.Abs(samples[i])>peak {peak=math.Abs(samples[i])}
+  if math.Abs(samples[i])>1 {clipped++}
  }
+ if clipped>0 {log.Printf("WARNING: %d samples exceed PCM full scale; lower -gain",clipped)}
  f,err:=os.Create(*out)
  if err!=nil { log.Fatal(err) }
  if err:=wav.WriteMono16(f,rate,samples);err!=nil { _=f.Close();log.Fatal(err) }
  if err:=f.Close();err!=nil { log.Fatal(err) }
+ log.Printf("peak %.6f, over-range samples %d",peak,clipped)
  log.Printf("wrote %s (key %d, registration %s, release %.3fs, gain %.4f, contact step %d samples, second harmonic %.3f, wheel overrides %q, experimental mix)",*out,*key,*drawbars,*release,*gain,*step,*harmonic2,*wheelHarmonics)
 }
