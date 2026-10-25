@@ -1,8 +1,10 @@
 package electrical
 
-// B3PedalFilterTopology lists R80 and L20 from the pedal-switch detail.
-// The available diagram does not establish a series R80/L20 junction.
-// No interconnection is asserted until the terminals can be traced.
+// B3PedalFilterTopology inventories R80 and L20 from the pedal-switch
+// detail. This name does not imply a separate physical filter assembly:
+// the schematic places these designators alongside the pedal resistor
+// network. No junction between their terminals is asserted here.
+// Source: Hammond B3/C3 Service Manual, full schematic, PDF page 72.
 func B3PedalFilterTopology() PedalCircuitTopology {
  const source="B3/C3 schematic, pedal switch, PDF page 72"
  return PedalCircuitTopology{Components:[]PedalComponentPlacement{
