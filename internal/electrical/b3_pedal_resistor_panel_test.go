@@ -6,13 +6,21 @@ func TestB3PedalResistorPanelTopology(t *testing.T) {
  panel:=B3PedalResistorPanelTopology()
  if err:=panel.Validate();err!=nil {t.Fatal(err)}
  if len(panel.Components)!=6 {t.Fatalf("got %d components",len(panel.Components))}
- for _,row:=range []string{"1","2","3"} {
-  ok,err:=panel.SignalPathExists("panel-row-"+row+"-in","panel-common-out")
-  if err!=nil||!ok {t.Fatalf("row %s not connected: %v",row,err)}
+ expected:=map[string][2]string{
+  "R81":{"panel-common-in","panel-row-1-mid"},
+  "R84":{"panel-row-1-mid","panel-common-out"},
+  "R82":{"panel-common-in","panel-row-2-mid"},
+  "R85":{"panel-row-2-mid","panel-common-out"},
+  "R83":{"panel-common-in","panel-row-3-mid"},
+  "R86":{"panel-row-3-mid","panel-common-out"},
  }
- for _,pair:=range [][2]string{{"1","2"},{"1","3"},{"2","3"}} {
-  ok,err:=panel.SignalPathExists("panel-row-"+pair[0]+"-in","panel-row-"+pair[1]+"-in")
-  if err!=nil {t.Fatal(err)}
-  if !ok {t.Fatalf("rows %s and %s must join at common output rail",pair[0],pair[1])}
+ for _,c:=range panel.Components {
+  terminals,ok:=expected[c.Designator]
+  if !ok {t.Fatalf("unexpected component %s",c.Designator)}
+  if c.TerminalA!=terminals[0]||c.TerminalB!=terminals[1] {
+   t.Fatalf("%s terminals %s/%s, want %s/%s",c.Designator,c.TerminalA,c.TerminalB,terminals[0],terminals[1])
+  }
  }
+ connected,err:=panel.SignalPathExists("panel-common-in","panel-common-out")
+ if err!=nil||!connected {t.Fatalf("common rails disconnected: %v",err)}
 }
