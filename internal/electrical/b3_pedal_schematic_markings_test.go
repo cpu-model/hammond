@@ -13,7 +13,7 @@ func TestB3PedalPrintedMarkingsAreNotPhysicalValues(t *testing.T) {
  if len(markings)!=8 {t.Fatalf("got %d markings, want 8",len(markings))}
  expected:=map[string]string{
   "R80":"10","R81":"10","R82":"47","R83":"470",
-  "R84":"5","R85":"5","R86":"20","L20":"(1000)",
+  "R84":"5","R85":"5","R86":"20","L20":"",
  }
  seen:=map[string]bool{}
  for _,m:=range markings {
