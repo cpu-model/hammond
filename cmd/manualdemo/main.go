@@ -28,6 +28,7 @@ func main() {
  harmonic2:=flag.Float64("harmonic2",0,"experimental second-harmonic level for all tonewheels (0..1)")
  metrics:=flag.String("metrics","","optional JSON path for reproducible render measurements")
  wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
+ wheelPhases:=flag.String("wheel-phases","","comma-separated wheel:phase-in-cycles overrides, e.g. 37:0.25,49:0.5")
  flag.Parse()
  if *key<1 || *key>61 || *seconds<1 || *seconds>30 { log.Fatal("key must be 1..61 and seconds 1..30") }
  if len(*drawbars)!=9 {log.Fatal("drawbars must contain nine digits 0..8")}
@@ -55,6 +56,20 @@ func main() {
    if seen[wheel] {log.Fatalf("duplicate wheel %d",wheel)}
    seen[wheel]=true
    if err:=e.SetWheelSecondHarmonic(wheel,level);err!=nil {log.Fatal(err)}
+  }
+ }
+ if *wheelPhases!="" {
+  seen:=make(map[int]bool)
+  for _,item:=range strings.Split(*wheelPhases,",") {
+   parts:=strings.Split(item,":")
+   if len(parts)!=2 {log.Fatalf("invalid wheel-phases entry %q",item)}
+   wheel,err:=strconv.Atoi(parts[0])
+   if err!=nil {log.Fatalf("invalid phase wheel number %q",parts[0])}
+   phase,err:=strconv.ParseFloat(parts[1],64)
+   if err!=nil {log.Fatalf("invalid wheel phase %q",parts[1])}
+   if seen[wheel] {log.Fatalf("duplicate phase wheel %d",wheel)}
+   seen[wheel]=true
+   if err:=e.SetWheelPhaseOffset(wheel,phase);err!=nil {log.Fatal(err)}
   }
  }
  upper,_:=e.Manual(0)
@@ -85,10 +100,11 @@ func main() {
    ContactStepSamples int `json:"contact_step_samples"`
    SecondHarmonic float64 `json:"second_harmonic"`
    WheelHarmonics string `json:"wheel_harmonics"`
+   WheelPhases string `json:"wheel_phases"`
    Peak float64 `json:"peak"`
    RMS float64 `json:"rms"`
    OverRangeSamples int `json:"over_range_samples"`
-  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
+  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
   data,err:=json.MarshalIndent(record,"","  ")
   if err!=nil {log.Fatal(err)}
   if err:=os.WriteFile(filepath.Clean(*metrics),append(data,'\n'),0644);err!=nil {log.Fatal(err)}
@@ -99,5 +115,5 @@ func main() {
  if err:=wav.WriteMono16(f,rate,samples);err!=nil { _=f.Close();log.Fatal(err) }
  if err:=f.Close();err!=nil { log.Fatal(err) }
  log.Printf("peak %.6f, over-range samples %d",peak,clipped)
- log.Printf("wrote %s (key %d, registration %s, release %.3fs, gain %.4f, contact step %d samples, second harmonic %.3f, wheel overrides %q, experimental mix)",*out,*key,*drawbars,*release,*gain,*step,*harmonic2,*wheelHarmonics)
+ log.Printf("wrote %s (key %d, registration %s, release %.3fs, gain %.4f, contact step %d samples, second harmonic %.3f, wheel overrides %q, phase overrides %q, experimental mix)",*out,*key,*drawbars,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases)
 }
