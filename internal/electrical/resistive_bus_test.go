@@ -5,14 +5,14 @@ import (
  "testing"
 )
 
-func experimentalOhms(v float64) Parameter {
+func busExperimentalOhms(v float64) Parameter {
  return Parameter{Value:v,Unit:"ohm",Provenance:ProvenanceExperimental}
 }
 
 func TestResistiveBusMultipleClosedContacts(t *testing.T) {
  b,err:=NewResistiveBus(BusConfig{
-  SourceResistanceOhm:experimentalOhms(1000),
-  LoadResistanceOhm:experimentalOhms(1000),
+  SourceResistanceOhm:busExperimentalOhms(1000),
+  LoadResistanceOhm:busExperimentalOhms(1000),
  })
  if err!=nil { t.Fatal(err) }
  b.BeginSample()
@@ -28,15 +28,15 @@ func TestResistiveBusMultipleClosedContacts(t *testing.T) {
 func TestResistiveBusRejectsUnprovenSchematicValue(t *testing.T) {
  c:=BusConfig{
   SourceResistanceOhm:Parameter{Value:1000,Unit:"ohm",Provenance:ProvenanceSchematic},
-  LoadResistanceOhm:experimentalOhms(1000),
+  LoadResistanceOhm:busExperimentalOhms(1000),
  }
  if _,err:=NewResistiveBus(c);err==nil { t.Fatal("accepted unreferenced schematic resistance") }
- c.SourceResistanceOhm=experimentalOhms(0)
+ c.SourceResistanceOhm=busExperimentalOhms(0)
  if _,err:=NewResistiveBus(c);err==nil { t.Fatal("accepted zero resistance") }
 }
 
 func TestResistiveBusNoAllocations(t *testing.T) {
- b,err:=NewResistiveBus(BusConfig{experimentalOhms(1000),experimentalOhms(1000)})
+ b,err:=NewResistiveBus(BusConfig{busExperimentalOhms(1000),busExperimentalOhms(1000)})
  if err!=nil { t.Fatal(err) }
  if n:=testing.AllocsPerRun(100,func(){
   b.BeginSample()
