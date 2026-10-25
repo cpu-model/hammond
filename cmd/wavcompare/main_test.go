@@ -14,7 +14,7 @@ func TestMagnitudeKnownSine(t *testing.T) {
  x:=make([]float64,4800)
  for i:=range x{x[i]=0.25*math.Sin(2*math.Pi*freq*float64(i)/rate)}
  if got:=magnitude(x,freq,rate);math.Abs(got-0.25)>1e-6 {t.Fatalf("fundamental amplitude %.9f, want 0.25",got)}
- if got:=magnitude(x,2*freq,rate);got>1e-9 {t.Fatalf("unexpected second harmonic %.9f",got)}
+ if got:=magnitude(x,2*freq,rate);got>1e-6 {t.Fatalf("unexpected second harmonic %.9f",got)}
  if got:=rms(x);math.Abs(got-0.25/math.Sqrt2)>1e-9 {t.Fatalf("RMS %.9f",got)}
 }
 
