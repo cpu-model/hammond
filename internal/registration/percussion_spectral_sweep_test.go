@@ -51,6 +51,7 @@ func TestNinthDrawbarSpectralSweep(t *testing.T) {
    reduction:=10*math.Log10(baseline/measured)
    t.Logf("wheel %.0f Hz, fade %.1f ms: high-band reduction %.2f dB",frequency,float64(fade)/rate*1000,reduction)
    if math.IsNaN(reduction)||math.IsInf(reduction,0) {t.Fatalf("invalid energy ratio at %g Hz, %d samples",frequency,fade)}
+   if fade==144 && measured>=baseline {t.Errorf("3ms fade increases high-band energy at %.0f Hz: immediate=%g fade=%g",frequency,baseline,measured)}
   }
  }
 }
