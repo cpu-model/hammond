@@ -63,3 +63,21 @@ func (e *ElectricalBusEngine) NextTransformerInputs(pair electrical.ManualTransf
  upper,lower:=e.NextBuses()
  return pair.Inputs(upper,lower)
 }
+
+// NextTransformerSources advances the manual electrical path once,
+// then associates an externally supplied pedal source with T1.
+// It does not generate pedal tones or solve the transformer circuit.
+// Invalid tap/pedal configuration leaves engine sample state unchanged.
+func (e *ElectricalBusEngine) NextTransformerSources(pair electrical.ManualTransformerPair,pedals electrical.PedalTransformerInputs) (electrical.TransformerInputs,electrical.T1InputBoundary,error) {
+ if err:=pair.Validate();err!=nil {
+  return electrical.TransformerInputs{},electrical.T1InputBoundary{},err
+ }
+ if err:=pedals.Validate();err!=nil {
+  return electrical.TransformerInputs{},electrical.T1InputBoundary{},err
+ }
+ upper,lower:=e.NextBuses()
+ t2,t1,err:=pair.Inputs(upper,lower)
+ if err!=nil { return electrical.TransformerInputs{},electrical.T1InputBoundary{},err }
+ boundary,err:=electrical.NewT1InputBoundary(t1,pedals)
+ return t2,boundary,err
+}
