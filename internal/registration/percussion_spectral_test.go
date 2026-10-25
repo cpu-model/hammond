@@ -29,15 +29,13 @@ func TestNinthDrawbarSwitchingHighFrequencyEnergy(t *testing.T) {
   }
   return residual
  }
- // Subtract the steady-state post-switch signal, leaving only the
- // finite switching transient (rather than the sustained removed tone).
- transient:=func(residual []float64)[]float64 {
+ // Reconstruct the actual emitted signal. Both variants start with
+ // the same oscillator and end silent, so the spectrum compares the
+ // same gated event without subtracting either variant as reference.
+ emitted:=func(residual []float64)[]float64 {
   out:=make([]float64,len(residual))
   for i,v:=range residual {
-   if i<switchAt {out[i]=v} else {
-    oscillator:=math.Sin(2*math.Pi*440*float64(i)/rate)
-    out[i]=v+oscillator
-   }
+   out[i]=v+math.Sin(2*math.Pi*440*float64(i)/rate)
   }
   return out
  }
@@ -55,8 +53,8 @@ func TestNinthDrawbarSwitchingHighFrequencyEnergy(t *testing.T) {
   }
   return energy
  }
- immediate:=highEnergy(transient(makeResidual(1)))
- smooth:=highEnergy(transient(makeResidual(144)))
+ immediate:=highEnergy(emitted(makeResidual(1)))
+ smooth:=highEnergy(emitted(makeResidual(144)))
  if !(smooth<immediate) {
   t.Fatalf("high-frequency transition energy not reduced: immediate=%g smooth=%g",immediate,smooth)
  }
