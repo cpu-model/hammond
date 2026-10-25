@@ -1,15 +1,68 @@
 name: Go verification
 on:
   push:
+    paths-ignore:
+      - '.verification/latest.md'
   pull_request:
+permissions:
+  contents: read
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - run: go test ./...
-      - run: go vet ./...
-      - run: go build ./...
+      - name: Verify and prepare report
+        id: verify
+        shell: bash
+        run: |
+          set +e
+          go test ./... > /tmp/hammond-test.log 2>&1
+          test_code=$?
+          go vet ./... > /tmp/hammond-vet.log 2>&1
+          vet_code=$?
+          go build ./... > /tmp/hammond-build.log 2>&1
+          build_code=$?
+          set -e
+          mkdir -p .verification
+          {
+            echo '# Latest Go verification'
+            echo
+            echo "- Source commit: \`$GITHUB_SHA\`"
+            echo "- Run: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo "- UTC: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo
+            echo '| Check | Exit code |'
+            echo '| --- | ---: |'
+            echo "| go test ./... | $test_code |"
+            echo "| go vet ./... | $vet_code |"
+            echo "| go build ./... | $build_code |"
+            for name in test vet build; do
+              echo
+              echo "## $name output"
+              echo '\`\`\`text'
+              tail -n 120 "/tmp/hammond-$name.log"
+              echo '\`\`\`'
+            done
+          } > .verification/latest.md
+          if (( test_code != 0 || vet_code != 0 || build_code != 0 )); then
+            echo 'failed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'failed=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publish latest report
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .verification/latest.md
+          git commit -m 'Record Go verification results [skip ci]' || exit 0
+          git push
+      - name: Fail workflow if verification failed
+        if: steps.verify.outputs.failed == 'true'
+        run: exit 1
