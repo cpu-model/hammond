@@ -29,6 +29,7 @@ func main() {
  metrics:=flag.String("metrics","","optional JSON path for reproducible render measurements")
  wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
  percussionLevel:=flag.Float64("percussion-level",0,"experimental percussion level 0..1")
+ ninthTransition:=flag.Float64("ninth-transition-ms",3,"upper ninth drawbar fade time in milliseconds")
  percussionPreset:=flag.String("percussion-preset","","fast-normal, fast-soft, slow-normal or slow-soft")
  percussionSeconds:=flag.Float64("percussion-seconds",0,"percussion exponential decay time constant in seconds; zero uses sample multiplier")
  percussionDecay:=flag.Float64("percussion-decay",0.9995,"per-sample decay 0..1 exclusive")
@@ -82,6 +83,8 @@ func main() {
   }
  }
  upper,_:=e.Manual(0)
+ if math.IsNaN(*ninthTransition)||math.IsInf(*ninthTransition,0)||*ninthTransition<0||*ninthTransition>100 {log.Fatal("ninth-transition-ms must be 0..100")}
+ upper.SetNinthDrawbarTransition(int(math.Max(1,math.Round(*ninthTransition*rate/1000))))
  if err:=upper.SetKeyClick(*keyClick);err!=nil {log.Fatal(err)}
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
  for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
@@ -141,10 +144,11 @@ func main() {
    PercussionHarmonic int `json:"percussion_harmonic"`
    PercussionSeconds float64 `json:"percussion_seconds"`
    PercussionPreset string `json:"percussion_preset"`
+   NinthTransitionMS float64 `json:"ninth_transition_ms"`
    Peak float64 `json:"peak"`
    RMS float64 `json:"rms"`
    OverRangeSamples int `json:"over_range_samples"`
-  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,*percussionHarmonic,*percussionSeconds,*percussionPreset,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
+  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,*percussionHarmonic,*percussionSeconds,*percussionPreset,*ninthTransition,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
   data,err:=json.MarshalIndent(record,"","  ")
   if err!=nil {log.Fatal(err)}
   if err:=os.WriteFile(filepath.Clean(*metrics),append(data,'\n'),0644);err!=nil {log.Fatal(err)}
