@@ -11,6 +11,8 @@ func TestCompileB3PedalWiringRequiresSourceAndBusbars(t *testing.T) {
  e.Source=" \t\n "
  if _,_,err:=CompileB3PedalWiring(e); err==nil { t.Fatal("accepted whitespace-only source") }
  e.Source="synthetic test fixture, not historical B3 wiring"
+ if _,_,err:=CompileB3PedalWiring(e);err==nil {t.Fatal("accepted unverified physical wiring")}
+ e.Verified=true
  routing,bus,err:=CompileB3PedalWiring(e)
  if err!=nil { t.Fatal(err) }
  if bus!=e.Busbars { t.Fatal("busbar assignment changed") }
