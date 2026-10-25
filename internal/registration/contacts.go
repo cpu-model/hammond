@@ -26,12 +26,14 @@ type TimedManual struct {
  clock uint64
  clickLevel float64
  clickState float64
+ percussionArmed bool
+ percussionTrigger bool
 }
 
 func NewTimedManual(route Routing, timing ContactTiming) (*TimedManual,error) {
  m,err:=NewManual(route)
  if err!=nil { return nil,err }
- return &TimedManual{manual:m,timing:timing},nil
+ return &TimedManual{manual:m,timing:timing,percussionArmed:true},nil
 }
 
 func (m *TimedManual) SetDrawbar(index,position int) error {
@@ -53,6 +55,15 @@ func (m *TimedManual) Key(key int,down bool) error {
  if key<0 || key>=Keys { return errors.New("key index outside 0..60") }
  if m.requested[key]==down { return nil }
  m.requested[key]=down
+ if down && m.percussionArmed {
+  m.percussionTrigger=true
+  m.percussionArmed=false
+ }
+ if !down {
+  anyHeld:=false
+  for _,held:=range m.requested {if held {anyHeld=true;break}}
+  if !anyHeld {m.percussionArmed=true}
+ }
  for contact:=0;contact<Harmonics;contact++ {
   delay:=m.timing.Break[contact]
   if down { delay=m.timing.Make[contact] }
@@ -112,4 +123,12 @@ func (m *TimedManual) ForEachActiveContact(visit func(bus int,wheel int)) {
    if wheel!=0 { visit(bus,int(wheel)) }
   }
  }
+}
+
+// TakePercussionTrigger consumes the next single-trigger event.
+// A new event is armed only after all requested keys have been released.
+func (m *TimedManual) TakePercussionTrigger() bool {
+ triggered:=m.percussionTrigger
+ m.percussionTrigger=false
+ return triggered
 }
