@@ -2,8 +2,9 @@ package electrical
 
 // B3PedalFilterTopology captures only the two components identified
 // in the separate pedal-filter assembly: R80 and reactor L20.
-// The diagram connects the three resistor-panel rows to successive
-// taps of the R80/L20 branch. Pedal busbar connections remain unresolved.
+// The three row taps below are a provisional tracing of the compact
+// schematic. Their junctions must be independently verified before this
+// topology is treated as a factory-accurate pedal circuit.
 //
 // Source: Hammond B3/C3 Service Manual, pedal switch schematic,
 // https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf
@@ -16,7 +17,7 @@ func B3PedalFilterTopology() PedalCircuitTopology {
 }
 
 // B3PedalAnalogComponents combines the resistor-panel and filter
-// component inventories and the three drawn row taps.
+// component inventories and provisional row-tap wiring.
 // No pedal busbar assignment or component value is inferred.
 func B3PedalAnalogComponents() PedalCircuitTopology {
  panel:=B3PedalResistorPanelTopology()
