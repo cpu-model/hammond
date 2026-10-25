@@ -126,7 +126,7 @@ func (e *ElectricalBusEngine) Pedals() (*registration.PedalContactsState,error) 
 // NextAllBuses advances the shared generator exactly once and returns
 // independent manual and pedal voltages. No pedal reactor, drawbar
 // or T1 coupling is simulated.
-func (e *ElectricalBusEngine) NextAllBuses() (upper,lower [9]float64,pedals [4]float64,error) {
+func (e *ElectricalBusEngine) NextAllBuses() (upper,lower [9]float64,pedals [4]float64,err error) {
  if e.pedal==nil { return upper,lower,pedals,fmt.Errorf("pedal network not configured") }
  upper,lower=e.NextBuses()
  e.pedalBuses.BeginSample()
