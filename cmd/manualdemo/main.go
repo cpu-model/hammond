@@ -21,6 +21,7 @@ func main() {
  release:=flag.Float64("release",2,"key release time in seconds (0 means held throughout)")
  gain:=flag.Float64("gain",0.02,"fixed linear output gain")
  step:=flag.Int("step",0,"additional contact closure delay per drawbar in samples (0..100)")
+ harmonic2:=flag.Float64("harmonic2",0,"experimental second-harmonic level for all tonewheels (0..1)")
  flag.Parse()
  if *key<1 || *key>61 || *seconds<1 || *seconds>30 { log.Fatal("key must be 1..61 and seconds 1..30") }
  if len(*drawbars)!=9 {log.Fatal("drawbars must contain nine digits 0..8")}
@@ -28,12 +29,14 @@ func main() {
  if math.IsNaN(*release)||math.IsInf(*release,0)||*release<0 || *release>float64(*seconds) {log.Fatal("release must be between 0 and duration")}
  if math.IsNaN(*gain)||math.IsInf(*gain,0)||*gain<0 || *gain>1 {log.Fatal("gain must be between 0 and 1")}
  if *step<0||*step>100 {log.Fatal("step must be between 0 and 100")}
+ if math.IsNaN(*harmonic2)||math.IsInf(*harmonic2,0)||*harmonic2<0||*harmonic2>1 {log.Fatal("harmonic2 must be finite and between 0 and 1")}
  const rate=48000
  routing:=registration.B3ManualRouting()
  var timing registration.ContactTiming
  for d:=0;d<registration.Harmonics;d++ {timing.Make[d]=uint32(d**step)}
  e,err:=engine.NewTimed(rate,routing,routing,timing,registration.ContactTiming{})
  if err!=nil { log.Fatal(err) }
+ if err:=e.SetSecondHarmonic(*harmonic2);err!=nil {log.Fatal(err)}
  upper,_:=e.Manual(0)
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
  for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
@@ -49,5 +52,5 @@ func main() {
  if err!=nil { log.Fatal(err) }
  if err:=wav.WriteMono16(f,rate,samples);err!=nil { _=f.Close();log.Fatal(err) }
  if err:=f.Close();err!=nil { log.Fatal(err) }
- log.Printf("wrote %s (key %d, registration %s, release %.3fs, gain %.4f, contact step %d samples, ideal sine mix)",*out,*key,*drawbars,*release,*gain,*step)
+ log.Printf("wrote %s (key %d, registration %s, release %.3fs, gain %.4f, contact step %d samples, second harmonic %.3f, experimental mix)",*out,*key,*drawbars,*release,*gain,*step,*harmonic2)
 }
