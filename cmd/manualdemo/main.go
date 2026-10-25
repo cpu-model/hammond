@@ -30,6 +30,7 @@ func main() {
  wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
  percussionLevel:=flag.Float64("percussion-level",0,"experimental percussion level 0..1")
  percussionDecay:=flag.Float64("percussion-decay",0.9995,"per-sample decay 0..1 exclusive")
+ percussionHarmonic:=flag.Int("percussion-harmonic",0,"key-dependent percussion harmonic 2 or 3; zero uses fixed wheel")
  percussionWheel:=flag.Int("percussion-wheel",0,"generator wheel 1..91; zero uses key third-harmonic contact")
  keyClick:=flag.Float64("key-click",0,"experimental key-click level from 0 to 1")
  phaseSeed:=flag.Uint64("phase-seed",0,"nonzero seed for reproducible experimental tonewheel phases")
@@ -83,9 +84,13 @@ func main() {
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
  for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
  if *percussionLevel!=0 {
+  if *percussionHarmonic!=0 {
+   if err:=e.SetHarmonicPercussion(0,*percussionHarmonic,*percussionLevel,*percussionDecay);err!=nil {log.Fatal(err)}
+  } else {
   wheel:=*percussionWheel
   if wheel==0 {wheel=int(routing[*key-1][3])}
   if err:=e.SetPercussion(0,wheel,*percussionLevel,*percussionDecay);err!=nil {log.Fatal(err)}
+  }
  }
  samples:=make([]float64,rate**seconds)
  peak:=0.0
@@ -118,10 +123,11 @@ func main() {
    PercussionLevel float64 `json:"percussion_level"`
    PercussionDecay float64 `json:"percussion_decay"`
    PercussionWheel int `json:"percussion_wheel"`
+   PercussionHarmonic int `json:"percussion_harmonic"`
    Peak float64 `json:"peak"`
    RMS float64 `json:"rms"`
    OverRangeSamples int `json:"over_range_samples"`
-  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
+  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,*percussionHarmonic,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
   data,err:=json.MarshalIndent(record,"","  ")
   if err!=nil {log.Fatal(err)}
   if err:=os.WriteFile(filepath.Clean(*metrics),append(data,'\n'),0644);err!=nil {log.Fatal(err)}
