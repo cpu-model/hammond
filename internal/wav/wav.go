@@ -9,7 +9,7 @@ import (
 
 // WriteMono16 writes a little-endian PCM WAV file.
 func WriteMono16(w io.Writer, sampleRate uint32, samples []float64) error {
- if sampleRate == 0 || sampleRate > ^uint32(0)/2 || uint64(len(samples)) > (math.MaxUint32-36)/2 { return errors.New("invalid WAV dimensions") }
+ if sampleRate == 0 || sampleRate > ^uint32(0)/2 || uint64(len(samples)) > uint64(^uint32(0)-36)/2 { return errors.New("invalid WAV dimensions") }
  dataSize := uint32(len(samples)) * 2
  if _, err := w.Write([]byte("RIFF")); err != nil { return err }
  if err := binary.Write(w, binary.LittleEndian, uint32(36)+dataSize); err != nil { return err }
