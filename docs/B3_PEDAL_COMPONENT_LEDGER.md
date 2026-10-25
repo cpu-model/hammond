@@ -106,3 +106,36 @@ that this is a discrete inductor simply from the letter L.
 
 No `PedalCircuitTopology` edge or `PedalComponentValue` is promoted
 to schematic provenance by these observations alone.
+
+## Independent wiring-diagram cross-check (2026-10-25)
+
+A **second drawing**, distinct from the electronic schematic, is included
+in the same service manual: **WIRING DIAGRAM - HAMMOND B3 OR C3**,
+revision B, dated December 12, 1995. Source:
+https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf
+
+The wiring diagram explicitly identifies **two separate physical assemblies**
+on the back of the manual assembly:
+
+| Assembly label on wiring diagram | Designators visibly assigned |
+| --- | --- |
+| PEDAL FILTER | R80, L20 |
+| RESISTOR PANEL | R81, R82, R83, R84, R85, R86 |
+
+This is an important distinction: the schematic's visually adjacent symbols
+do **not** mean all seven resistors and L20 are physically mounted together.
+It also strengthens identification of **L20 as part of the pedal filter**,
+though it does **not** supply an inductance in henries, winding resistance,
+or verified electrical terminal connections.
+
+**Modeling consequence:** represent pedal filter and resistor panel as
+separate source-traceable assembly boundaries when tracing wiring. Do not
+equate assembly placement with circuit connectivity; a wire-color label or
+a component's location in the diagram is not by itself a verified netlist
+edge. The earlier notes on a common right-hand rail remain *schematic
+observations*, not verified wiring-diagram endpoints.
+
+**Next source requirement:** reconcile individual color-coded wires between
+the resistor panel, pedal filter, pedal switch, drawbar base and T1 using
+the wiring diagram's printed color legend, then cross-check each resulting
+electrical net against the schematic before encoding it.
