@@ -2,6 +2,7 @@ package engine
 
 import (
  "fmt"
+ "math"
 
  "github.com/cpu-model/hammond/internal/electrical"
  "github.com/cpu-model/hammond/internal/generator"
@@ -15,6 +16,7 @@ type TimedEngine struct {
  manuals [2]*registration.TimedManual
  frame [91]float64
  percussion [2]Percussion
+ sampleRate float64
 }
 
 // NewTimed accepts explicit routing and contact timings for both manuals.
@@ -26,7 +28,7 @@ func NewTimed(sampleRate float64, upper, lower registration.Routing, upperTiming
  if err!=nil { return nil,fmt.Errorf("upper manual: %w",err) }
  l,err:=registration.NewTimedManual(lower,lowerTiming)
  if err!=nil { return nil,fmt.Errorf("lower manual: %w",err) }
- return &TimedEngine{generator:bank,manuals:[2]*registration.TimedManual{u,l}},nil
+ return &TimedEngine{generator:bank,manuals:[2]*registration.TimedManual{u,l},sampleRate:sampleRate},nil
 }
 
 func (e *TimedEngine) Manual(index int) (*registration.TimedManual,error) {
@@ -113,4 +115,14 @@ func (e *TimedEngine) SetPercussion(manual int,wheel int,level,decay float64) er
 func (e *TimedEngine) SetHarmonicPercussion(manual,harmonic int,level,decay float64) error {
  if manual<0||manual>1 {return fmt.Errorf("manual index outside 0..1")}
  return e.percussion[manual].ConfigureHarmonic(harmonic,level,decay)
+}
+
+// SetTimedPercussion configures a key-dependent harmonic with an
+// exponential time constant in seconds, independent of sample rate.
+func (e *TimedEngine) SetTimedPercussion(manual,harmonic int,level,seconds float64) error {
+ if math.IsNaN(seconds)||math.IsInf(seconds,0)||seconds<=0 {
+  return fmt.Errorf("percussion time constant must be positive and finite")
+ }
+ decay:=math.Exp(-1/(e.sampleRate*seconds))
+ return e.SetHarmonicPercussion(manual,harmonic,level,decay)
 }
