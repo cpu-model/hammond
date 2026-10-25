@@ -38,12 +38,11 @@ func (e *ElectricalBusEngine) Manual(index int) (*registration.TimedManual,error
 }
 
 // NextBuses advances the generator and contact clocks exactly once.
-// Results are nine independent bus voltages for each manual. The
-// existing legacy digital mix is evaluated solely to advance contacts.
+// Results are nine independent bus voltages for each manual. No legacy digital mix is computed.
 func (e *ElectricalBusEngine) NextBuses() (upper,lower [9]float64) {
  e.generator.Next(e.frame[:])
  for i,m:=range e.manuals {
-  m.Mix(e.frame[:])
+  m.AdvanceContacts()
   b:=e.buses[i]
   b.BeginSample()
   // Closure does not escape this call or allocate on the heap.
