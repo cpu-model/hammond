@@ -11,7 +11,7 @@ import (
 type MechanicalBank struct {
  phase [12]float64
  step [12]float64
- harmonic2 float64
+ harmonic2 [91]float64
 }
 
 var driveTeeth = [12]float64{85,71,67,105,103,84,74,98,96,88,67,108}
@@ -40,7 +40,18 @@ func (b *MechanicalBank) SetSecondHarmonic(level float64) error {
  if math.IsNaN(level)||math.IsInf(level,0)||level<0||level>1 {
   return errors.New("second harmonic level must be finite and between 0 and 1")
  }
- b.harmonic2=level
+ for i:=range b.harmonic2 {b.harmonic2[i]=level}
+ return nil
+}
+
+// SetWheelSecondHarmonic sets an individual wheel (1..91) without
+// changing other wheels. Values are experimental, not measured B3 data.
+func (b *MechanicalBank) SetWheelSecondHarmonic(wheel int,level float64) error {
+ if wheel<1||wheel>91 {return errors.New("wheel must be between 1 and 91")}
+ if math.IsNaN(level)||math.IsInf(level,0)||level<0||level>1 {
+  return errors.New("second harmonic level must be finite and between 0 and 1")
+ }
+ b.harmonic2[wheel-1]=level
  return nil
 }
 
@@ -54,7 +65,8 @@ func (b *MechanicalBank) Next(dst []float64) {
   if n>=84 { group=n-84+5; teeth=192 }
   cycles := math.Mod(float64(teeth)*b.phase[group],1)
   angle:=2*math.Pi*cycles
-  dst[n] = (math.Sin(angle)+b.harmonic2*math.Sin(2*angle))/(1+b.harmonic2)
+  level:=b.harmonic2[n]
+  dst[n] = (math.Sin(angle)+level*math.Sin(2*angle))/(1+level)
  }
  for i:=range b.phase {
   p:=b.phase[i]+b.step[i]
