@@ -71,3 +71,17 @@ func (m *TimedManual) Mix(frame []float64) float64 {
  if m.clock < ^uint64(0) { m.clock++ }
  return sum
 }
+
+// ForEachActiveContact visits active, connected key contacts without
+// changing the contact clock. Call Mix once per sample before visiting.
+// wheel is a one-based generator index and bus is a zero-based harmonic
+// conductor index. Drawbar gain is deliberately not applied.
+func (m *TimedManual) ForEachActiveContact(visit func(bus int,wheel int)) {
+ for key:=0;key<Keys;key++ {
+  for bus:=0;bus<Harmonics;bus++ {
+   if !m.active[key][bus] { continue }
+   wheel:=m.manual.route[key][bus]
+   if wheel!=0 { visit(bus,int(wheel)) }
+  }
+ }
+}
