@@ -52,28 +52,38 @@ func (m *TimedManual) Key(key int,down bool) error {
  return nil
 }
 
-// Mix advances contact events once, then mixes the current shared
-// generator frame. It performs no heap allocations.
-func (m *TimedManual) Mix(frame []float64) float64 {
- if len(frame)<91 { panic("registration: generator frame too short") }
- var sum float64
+// AdvanceContacts applies transitions due at this sample and advances
+// the contact clock exactly once. It does not inspect generator signals.
+func (m *TimedManual) AdvanceContacts() {
  for key:=0;key<Keys;key++ {
   for contact:=0;contact<Harmonics;contact++ {
    if m.pending[key][contact] && m.clock>=m.due[key][contact] {
     m.active[key][contact]=m.target[key][contact]
     m.pending[key][contact]=false
    }
+  }
+ }
+ if m.clock < ^uint64(0) { m.clock++ }
+}
+
+// Mix advances contact events once, then mixes the shared generator
+// frame. It retains the original sample timing and allocates nothing.
+func (m *TimedManual) Mix(frame []float64) float64 {
+ if len(frame)<91 { panic("registration: generator frame too short") }
+ m.AdvanceContacts()
+ var sum float64
+ for key:=0;key<Keys;key++ {
+  for contact:=0;contact<Harmonics;contact++ {
    if !m.active[key][contact] { continue }
    wheel:=m.manual.route[key][contact]
    if wheel!=0 { sum+=m.manual.level[contact]*frame[wheel-1] }
   }
  }
- if m.clock < ^uint64(0) { m.clock++ }
  return sum
 }
 
 // ForEachActiveContact visits active, connected key contacts without
-// changing the contact clock. Call Mix once per sample before visiting.
+// changing the contact clock. Call AdvanceContacts or Mix once per sample before visiting.
 // wheel is a one-based generator index and bus is a zero-based harmonic
 // conductor index. Drawbar gain is deliberately not applied.
 func (m *TimedManual) ForEachActiveContact(visit func(bus int,wheel int)) {
