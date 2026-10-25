@@ -36,3 +36,21 @@ until units, connections and component roles are checked.
 3. Identify the two pedal drawbar connections and T1 input boundary.
 4. Confirm units, winding properties and revision applicability.
 5. Record source page/region for every edge and parameter.
+
+## Visual source inspection — 2026-10-25
+
+**Inspected directly:** [B3/C3 service manual, schematic page 72 (PDF index 71)](https://www.lost-manuals.com/pdf/hammond--b-3--service--ID201.pdf), lower-left **PEDAL SWITCH** region, visually checked against the full-page rendering.
+
+The schematic shows a distinct pedal-switch region with eight contacts under a typical pedal key, a labeled group of pedal busbars, generator terminals to the left, and a resistor network above the contacts. The network visibly contains the designators **R80–R86** and printed adjacent numbers 10, 10, 47, 470, 5, 5, 20. This confirms label presence and approximate region, **not** physical resistance units or junction connectivity.
+
+**Important correction to earlier transcription:** the printed designator **L20** has *not* been independently confirmed in this pedal-switch region by this visual inspection. It must not be instantiated as an inductor in the emulator without a separate verified schematic or parts-list reference. The previous ledger row is an unverified candidate, not established circuit evidence.
+
+The full schematic also places the two **PEDAL DRAWBARS** adjacent to the **T1 MATCHING TRANSFORMER (LOWER AND PEDAL)** at the upper-left, spatially separate from the pedal-switch drawing. The exact path between these regions has **not** yet been traced terminal by terminal.
+
+### Evidence status and transcription discipline
+
+- **Verified from visible drawing:** eight typical pedal contacts; pedal busbar label; R80–R86 designators and their neighboring number strings; T1 and pedal drawbar labels.
+- **Not verified:** resistor units and tolerances, whether printed numbers are ohms or another notation, exact resistor endpoints and crossover junctions, reactor L20's identity/existence in this region, drawbar-to-T1 electrical edges.
+- **Implementation consequence:** no new B3-sourced `PedalComponentValue` or `TerminalEdge` should be added yet. The existing synthetic RL tests remain synthetic.
+
+The diagram itself is a 1995 reproduction of the B3/C3 schematic; a reproduction date is not evidence that every circuit revision uses identical components.
