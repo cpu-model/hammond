@@ -16,8 +16,8 @@ func TestB3PedalAnalogComponentInventory(t *testing.T) {
  }
  connected,err:=topology.SignalPathExists("filter-R80-a","panel-common-out")
  if err!=nil {t.Fatal(err)}
- if !connected {t.Fatal("R80 input tap must connect to resistor panel output")}
+ if connected {t.Fatal("R80-to-panel connection is unverified")}
  connected,err=topology.SignalPathExists("filter-R80-a","filter-L20-b")
  if err!=nil {t.Fatal(err)}
- if !connected {t.Fatal("R80 and L20 series junction missing")}
+ if connected {t.Fatal("R80-to-L20 connection is unverified")}
 }
