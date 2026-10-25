@@ -12,7 +12,9 @@ type B3PedalSchematicMarking struct {
 
 // B3PedalPrintedMarkings transcribes the component labels from the
 // lower-left PEDAL SWITCH detail on PDF page 72 (zero-based page 71).
-// The nearby (1000) annotation has not been conclusively identified\n// as L20 inductance; do not treat it as a physical value.
+// The (1000) annotation appears beside the optional heater in the motor
+// section, not as an L20 inductance specification. L20 has no verified
+// numerical inductance here.
 func B3PedalPrintedMarkings() []B3PedalSchematicMarking {
  const source="https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf#page=72"
  return []B3PedalSchematicMarking{
