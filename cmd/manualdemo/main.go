@@ -3,6 +3,7 @@ package main
 import (
  "flag"
  "log"
+ "math"
  "os"
 
  "github.com/cpu-model/hammond/internal/engine"
@@ -24,8 +25,8 @@ func main() {
  if *key<1 || *key>61 || *seconds<1 || *seconds>30 { log.Fatal("key must be 1..61 and seconds 1..30") }
  if len(*drawbars)!=9 {log.Fatal("drawbars must contain nine digits 0..8")}
  for _,ch:=range *drawbars {if ch<'0'||ch>'8' {log.Fatal("drawbars must contain nine digits 0..8")}}
- if *release<0 || *release>float64(*seconds) {log.Fatal("release must be between 0 and duration")}
- if *gain<0 || *gain>1 {log.Fatal("gain must be between 0 and 1")}
+ if math.IsNaN(*release)||math.IsInf(*release,0)||*release<0 || *release>float64(*seconds) {log.Fatal("release must be between 0 and duration")}
+ if math.IsNaN(*gain)||math.IsInf(*gain,0)||*gain<0 || *gain>1 {log.Fatal("gain must be between 0 and 1")}
  if *step<0||*step>100 {log.Fatal("step must be between 0 and 100")}
  const rate=48000
  routing:=registration.B3ManualRouting()
