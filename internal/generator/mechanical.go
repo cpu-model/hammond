@@ -12,6 +12,7 @@ type MechanicalBank struct {
  phase [12]float64
  step [12]float64
  harmonic2 [91]float64
+ secondAllowed [91]bool
 }
 
 var driveTeeth = [12]float64{85,71,67,105,103,84,74,98,96,88,67,108}
@@ -24,6 +25,13 @@ func NewMechanicalBank(sampleRate float64) (*MechanicalBank, error) {
   return nil, errors.New("invalid sample rate")
  }
  b := &MechanicalBank{}
+ for n:=0;n<91;n++ {
+  group:=n%12
+  teeth:=2 << (n/12)
+  if n>=84 {group=n-84+5;teeth=192}
+  fundamental:=20*(driveTeeth[group]/drivenTeeth[group])*float64(teeth)
+  b.secondAllowed[n]=2*fundamental<sampleRate/2
+ }
  for i := range b.step {
   b.step[i] = (1200.0/60.0)*(driveTeeth[i]/drivenTeeth[i])/sampleRate
  }
@@ -35,6 +43,7 @@ func NewMechanicalBank(sampleRate float64) (*MechanicalBank, error) {
 }
 
 // SetSecondHarmonic enables a bounded, uncalibrated pickup-shape experiment.
+// Second harmonics above Nyquist are suppressed rather than aliased.
 // Zero preserves the original ideal sine output; no factory spectrum is implied.
 func (b *MechanicalBank) SetSecondHarmonic(level float64) error {
  if math.IsNaN(level)||math.IsInf(level,0)||level<0||level>1 {
@@ -66,6 +75,7 @@ func (b *MechanicalBank) Next(dst []float64) {
   cycles := math.Mod(float64(teeth)*b.phase[group],1)
   angle:=2*math.Pi*cycles
   level:=b.harmonic2[n]
+  if !b.secondAllowed[n] {level=0}
   dst[n] = (math.Sin(angle)+level*math.Sin(2*angle))/(1+level)
  }
  for i:=range b.phase {
