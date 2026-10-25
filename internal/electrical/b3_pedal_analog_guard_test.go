@@ -12,11 +12,13 @@ func TestB3PedalAnalogRequiresExplicitValues(t *testing.T) {
  if err==nil {t.Fatal("B3 analog components compiled without physical values")}
 }
 
-func TestB3PedalAnalogFilterRemainsIsolated(t *testing.T) {
+// The ladder is internal to the panel; factory pedal-bus assignments
+// are not implied by these component connections.
+func TestB3PedalAnalogNoInventedBusbarConnections(t *testing.T) {
  topology:=B3PedalAnalogComponents()
- for _,term:=range []string{"filter-R80-a","filter-R80-b","filter-L20-a","filter-L20-b"} {
-  ok,err:=topology.SignalPathExists(term,"panel-common-out")
+ for _,bus:=range []string{"pedal-bus-0","pedal-bus-1","pedal-bus-2","pedal-bus-3"} {
+  ok,err:=topology.SignalPathExists(bus,"panel-common-out")
   if err!=nil {t.Fatal(err)}
-  if ok {t.Fatalf("unverified connection from %s to resistor panel",term)}
+  if ok {t.Fatalf("unverified busbar %s connected to resistor panel",bus)}
  }
 }
