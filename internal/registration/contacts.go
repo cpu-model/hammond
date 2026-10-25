@@ -29,12 +29,15 @@ type TimedManual struct {
  percussionArmed bool
  percussionTrigger bool
  percussionDrawbarCut bool
+ ninthGain float64
+ ninthTarget float64
+ ninthStep float64
 }
 
 func NewTimedManual(route Routing, timing ContactTiming) (*TimedManual,error) {
  m,err:=NewManual(route)
  if err!=nil { return nil,err }
- return &TimedManual{manual:m,timing:timing,percussionArmed:true},nil
+ return &TimedManual{manual:m,timing:timing,percussionArmed:true,ninthGain:1,ninthTarget:1,ninthStep:1},nil
 }
 
 func (m *TimedManual) SetDrawbar(index,position int) error {
@@ -99,12 +102,17 @@ func (m *TimedManual) AdvanceContacts() {
 func (m *TimedManual) Mix(frame []float64) float64 {
  if len(frame)<91 { panic("registration: generator frame too short") }
  m.AdvanceContacts()
+ if m.ninthGain<m.ninthTarget {m.ninthGain=math.Min(m.ninthTarget,m.ninthGain+m.ninthStep)} else if m.ninthGain>m.ninthTarget {m.ninthGain=math.Max(m.ninthTarget,m.ninthGain-m.ninthStep)}
  var sum float64
  for key:=0;key<Keys;key++ {
   for contact:=0;contact<Harmonics;contact++ {
-   if !m.active[key][contact] || (m.percussionDrawbarCut && contact==8) { continue }
+   if !m.active[key][contact] { continue }
    wheel:=m.manual.route[key][contact]
-   if wheel!=0 { sum+=m.manual.level[contact]*frame[wheel-1] }
+   if wheel!=0 {
+    gain:=m.manual.level[contact]
+    if contact==8 {gain*=m.ninthGain}
+    sum+=gain*frame[wheel-1]
+   }
   }
  }
  click:=m.clickState
