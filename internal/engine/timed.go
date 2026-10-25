@@ -14,6 +14,7 @@ type TimedEngine struct {
  generator *generator.MechanicalBank
  manuals [2]*registration.TimedManual
  frame [91]float64
+ percussion [2]Percussion
 }
 
 // NewTimed accepts explicit routing and contact timings for both manuals.
@@ -67,10 +68,13 @@ func (e *TimedEngine) SetSecondHarmonic(level float64) error {
 // Upper and lower are not electrically combined here.
 func (e *TimedEngine) NextPaths() electrical.ManualPaths {
  e.generator.Next(e.frame[:])
- return electrical.ManualPaths{
-  Upper:e.manuals[0].Mix(e.frame[:]),
-  Lower:e.manuals[1].Mix(e.frame[:]),
- }
+ upper:=e.manuals[0].Mix(e.frame[:])
+ lower:=e.manuals[1].Mix(e.frame[:])
+ if e.manuals[0].TakePercussionTrigger() {e.percussion[0].Trigger()}
+ if e.manuals[1].TakePercussionTrigger() {e.percussion[1].Trigger()}
+ upper+=e.percussion[0].Next(e.frame[:])
+ lower+=e.percussion[1].Next(e.frame[:])
+ return electrical.ManualPaths{Upper:upper,Lower:lower}
 }
 
 // Next retains the legacy diagnostic mono mix.
@@ -88,4 +92,10 @@ func (e *TimedEngine) RenderPaths(upper,lower []float64) {
 
 func (e *TimedEngine) Render(dst []float64) {
  for i:=range dst { dst[i]=e.Next() }
+}
+
+// SetPercussion configures one manual's experimental tonewheel percussion.
+func (e *TimedEngine) SetPercussion(manual int,wheel int,level,decay float64) error {
+ if manual<0||manual>=len(e.percussion) {return fmt.Errorf("manual index %d outside 0..1",manual)}
+ return e.percussion[manual].Configure(wheel,level,decay)
 }
