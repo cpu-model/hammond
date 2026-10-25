@@ -193,6 +193,14 @@ func (e *ElectricalBusEngine) DisableExperimentalPedalCircuit() {
 func (e *ElectricalBusEngine) NextExperimentalPedalCircuit(outputNode string) (upper,lower [9]float64,output float64,err error) {
  if e.experimentalPedalCircuit==nil {return upper,lower,0,fmt.Errorf("experimental pedal circuit not configured")}
  if outputNode=="" {return upper,lower,0,fmt.Errorf("output node required")}
+ found:=outputNode=="pedal-bus-0"||outputNode=="pedal-bus-1"||outputNode=="pedal-bus-2"||outputNode=="pedal-bus-3"
+ for _,b:=range e.experimentalPedalCircuit.Resistors {
+  if b.A==outputNode||b.B==outputNode {found=true}
+ }
+ for _,b:=range e.experimentalPedalCircuit.Inductors {
+  if b.A==outputNode||b.B==outputNode {found=true}
+ }
+ if !found {return upper,lower,0,fmt.Errorf("output node %q absent from circuit",outputNode)}
  upper,lower,pedals,err:=e.NextAllBuses()
  if err!=nil {return upper,lower,0,err}
  fixed:=map[string]float64{
