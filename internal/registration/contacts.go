@@ -2,6 +2,7 @@ package registration
 
 import (
  "errors"
+ "math"
 )
 
 // ContactTiming is an explicitly configurable research model, not a
@@ -23,6 +24,8 @@ type TimedManual struct {
  target [Keys][Harmonics]bool
  due [Keys][Harmonics]uint64
  clock uint64
+ clickLevel float64
+ clickState float64
 }
 
 func NewTimedManual(route Routing, timing ContactTiming) (*TimedManual,error) {
@@ -33,6 +36,14 @@ func NewTimedManual(route Routing, timing ContactTiming) (*TimedManual,error) {
 
 func (m *TimedManual) SetDrawbar(index,position int) error {
  return m.manual.SetDrawbar(index,position)
+}
+
+// SetKeyClick sets an experimental transient level; zero disables it.
+func (m *TimedManual) SetKeyClick(level float64) error {
+ if math.IsNaN(level)||math.IsInf(level,0)||level<0||level>1 {return errors.New("key click must be in 0..1")}
+ m.clickLevel=level
+ if level==0 {m.clickState=0}
+ return nil
 }
 
 // Key schedules transitions relative to the next rendered sample.
@@ -58,6 +69,11 @@ func (m *TimedManual) AdvanceContacts() {
  for key:=0;key<Keys;key++ {
   for contact:=0;contact<Harmonics;contact++ {
    if m.pending[key][contact] && m.clock>=m.due[key][contact] {
+    if m.active[key][contact]!=m.target[key][contact] && m.manual.route[key][contact]!=0 {
+     direction:=1.0
+     if !m.target[key][contact] {direction=-1}
+     m.clickState+=direction*m.clickLevel*m.manual.level[contact]/float64(Harmonics)
+    }
     m.active[key][contact]=m.target[key][contact]
     m.pending[key][contact]=false
    }
@@ -79,7 +95,9 @@ func (m *TimedManual) Mix(frame []float64) float64 {
    if wheel!=0 { sum+=m.manual.level[contact]*frame[wheel-1] }
   }
  }
- return sum
+ click:=m.clickState
+ m.clickState *= -0.82
+ return sum+click
 }
 
 // ForEachActiveContact visits active, connected key contacts without
