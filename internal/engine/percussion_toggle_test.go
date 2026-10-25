@@ -38,10 +38,12 @@ func TestPercussionTogglePreservesLowerManualSignal(t *testing.T) {
  _=lower.Key(0,true)
  e.NextPaths()
  if err:=e.SetHarmonicPercussion(0,3,0.5,0.9);err!=nil{t.Fatal(err)}
+ for i:=0;i<150;i++ {e.NextPaths()}
  paths:=e.NextPaths()
  if paths.Upper!=0 {t.Fatalf("upper 1-foot drawbar still sounding: %v",paths.Upper)}
  if paths.Lower==0 {t.Fatal("lower manual unexpectedly silent")}
  if err:=e.SetHarmonicPercussion(0,3,0,0.9);err!=nil{t.Fatal(err)}
+ for i:=0;i<150;i++ {e.NextPaths()}
  paths=e.NextPaths()
  if math.Abs(paths.Upper-paths.Lower)>1e-12 {t.Fatalf("upper drawbar not restored: %+v",paths)}
 }
