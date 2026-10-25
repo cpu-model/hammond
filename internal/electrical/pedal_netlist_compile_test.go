@@ -45,3 +45,27 @@ func TestCompilePedalRLNetworkRejectsUnsourcedOrIncorrectValues(t *testing.T) {
   if _,_,err:=CompilePedalRLNetwork(1000,topology,values,"ground");err==nil {t.Fatalf("accepted invalid values: %+v",values)}
  }
 }
+
+func TestCompilePedalRLNetworkPreservesPedalSourceIdentity(t *testing.T) {
+ topology:=PedalCircuitTopology{
+  Wires:[]TerminalEdge{{From:"pedal-bus-0",To:"R1.left",Source:"test"}},
+  Components:[]PedalComponentPlacement{{Designator:"R1",Kind:PedalResistor,TerminalA:"R1.left",TerminalB:"ground",Source:"test"}},
+ }
+ values:=[]PedalComponentValue{{Designator:"R1",Parameter:Parameter{Value:1000,Unit:"ohm",Provenance:ProvenanceExperimental}}}
+ n,nodes,err:=CompilePedalRLNetwork(48000,topology,values,"ground")
+ if err!=nil {t.Fatal(err)}
+ if nodes["pedal-bus-0"]!="pedal-bus-0"||nodes["R1.left"]!="pedal-bus-0" {t.Fatalf("source alias lost: %v",nodes)}
+ if _,err=n.Next(map[string]float64{"pedal-bus-0":5});err!=nil {t.Fatal(err)}
+}
+
+func TestCompilePedalRLNetworkRejectsIdealSourceShorts(t *testing.T) {
+ for _,wires:=range [][]TerminalEdge{
+  {{From:"pedal-bus-0",To:"ground",Source:"test"}},
+  {{From:"pedal-bus-0",To:"pedal-bus-1",Source:"test"}},
+ } {
+  topology:=PedalCircuitTopology{Wires:wires}
+  if _,_,err:=CompilePedalRLNetwork(48000,topology,nil,"ground");err==nil {
+   t.Fatalf("accepted conflicting ideal voltage source wires: %v",wires)
+  }
+ }
+}
