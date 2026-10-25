@@ -66,3 +66,43 @@ The page image shows a **resistor ladder** above the pedal contacts. The resisto
 **Additional directly visible circuit fact:** the pedal drawbars are drawn adjacent to T1 at the top left, while the resistor ladder is at the bottom left. Their apparent proximity on the same sheet does not by itself establish a complete end-to-end circuit path.
 
 The confirmed schematic label `L20` is not permission to assign it an arbitrary inductance in henries. No value for it has been established.
+
+## Page-image trace: resistor-network geometry (2026-10-25)
+
+**Source actually inspected in this increment:** page 72 image (PDF index 71) at
+https://www.lost-manuals.com/pdf/hammond--b-3--service--ID201.pdf#page=72
+The following observations refer to the **bottom-left PEDAL SWITCH inset**,
+not to the nearby mains motor or vibrato delay-line circuits.
+
+| Visible row (top to bottom) | Left resistor | Right resistor | Printed numbers |
+| --- | --- | --- | --- |
+| Top | R81 | R84 | 10, 5 |
+| Middle | R82 | R85 | 47, 5 |
+| Bottom | R83 | R86 | 470, 20 |
+
+R80 (printed 10) is drawn vertically on the left, between the pedal
+switch contacts and the three-row network. The schematic shows a common
+right-hand vertical rail at the ends of R84, R85 and R86. The row
+ordering and shared right rail are **visual observations**; they do not
+establish the signal source, ground reference, total impedance, or the
+units of the printed numbers. The network is **not** represented by
+three independent series R-L branches in the current emulator.
+
+The label L20 appears immediately adjacent to the vertical R80 branch
+in the drawing. Its **component type, inductance and terminals have not
+been established** from the visible resolution; it is not safe to infer
+that this is a discrete inductor simply from the letter L.
+
+### Trace checkpoints still required before compilation
+
+1. Resolve the left-side junctions of R81/R82/R83, including whether
+   they are a common conductor or three distinct pedal-bus taps.
+2. Resolve the right rail's destination (including any drawbar contact
+   and load), not just its visible continuity.
+3. Resolve R80's two terminals, the meaning of L20, and their junctions
+   with the eight pedal contacts.
+4. Verify units from the schematic legend, parts list or independent
+   service evidence before entering any ohmic value.
+
+No `PedalCircuitTopology` edge or `PedalComponentValue` is promoted
+to schematic provenance by these observations alone.
