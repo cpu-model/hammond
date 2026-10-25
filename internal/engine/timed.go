@@ -3,6 +3,7 @@ package engine
 import (
  "fmt"
 
+ "github.com/cpu-model/hammond/internal/electrical"
  "github.com/cpu-model/hammond/internal/generator"
  "github.com/cpu-model/hammond/internal/registration"
 )
@@ -32,9 +33,27 @@ func (e *TimedEngine) Manual(index int) (*registration.TimedManual,error) {
  return e.manuals[index],nil
 }
 
-func (e *TimedEngine) Next() float64 {
+// NextPaths advances the shared generator once and preserves manual outputs.
+// Upper and lower are not electrically combined here.
+func (e *TimedEngine) NextPaths() electrical.ManualPaths {
  e.generator.Next(e.frame[:])
- return e.manuals[0].Mix(e.frame[:])+e.manuals[1].Mix(e.frame[:])
+ return electrical.ManualPaths{
+  Upper:e.manuals[0].Mix(e.frame[:]),
+  Lower:e.manuals[1].Mix(e.frame[:]),
+ }
+}
+
+// Next retains the legacy diagnostic mono mix.
+func (e *TimedEngine) Next() float64 { return e.NextPaths().Sum() }
+
+// RenderPaths writes separate manual samples without allocating.
+func (e *TimedEngine) RenderPaths(upper,lower []float64) {
+ if len(upper)!=len(lower) { panic("manual output buffers must have equal length") }
+ for i:=range upper {
+  paths:=e.NextPaths()
+  upper[i]=paths.Upper
+  lower[i]=paths.Lower
+ }
 }
 
 func (e *TimedEngine) Render(dst []float64) {
