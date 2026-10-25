@@ -9,6 +9,7 @@ import (
 // The oscillator phase belongs to MechanicalBank, not this envelope.
 type Percussion struct {
  wheel int
+ harmonic int
  level float64
  decay float64
  envelope float64
@@ -25,13 +26,34 @@ func (p *Percussion) Configure(wheel int,level,decay float64) error {
  return nil
 }
 
+// ConfigureHarmonic selects the key-dependent second or third harmonic.
+func (p *Percussion) ConfigureHarmonic(harmonic int,level,decay float64) error {
+ if harmonic!=2&&harmonic!=3 {return errors.New("percussion harmonic must be 2 or 3")}
+ if math.IsNaN(level)||math.IsInf(level,0)||level<0||level>1||math.IsNaN(decay)||math.IsInf(decay,0)||decay<0||decay>=1 {
+  return errors.New("invalid percussion level or decay")
+ }
+ p.wheel=0
+ p.harmonic=harmonic
+ p.level=level
+ p.decay=decay
+ p.envelope=0
+ return nil
+}
+
 func (p *Percussion) Trigger() {
- if p.wheel!=0 {p.envelope=p.level}
+ if p.wheel!=0||p.harmonic!=0 {p.envelope=p.level}
 }
 
 func (p *Percussion) Next(frame []float64) float64 {
  if p.wheel==0 {return 0}
  sample:=p.envelope*frame[p.wheel-1]
+ p.envelope*=p.decay
+ return sample
+}
+
+// NextHarmonic advances the envelope using a key-dependent tonewheel mix.
+func (p *Percussion) NextHarmonic(signal float64) float64 {
+ sample:=p.envelope*signal
  p.envelope*=p.decay
  return sample
 }
