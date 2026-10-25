@@ -52,3 +52,14 @@ func (e *ElectricalBusEngine) NextBuses() (upper,lower [9]float64) {
  }
  return e.buses[0].Voltages(),e.buses[1].Voltages()
 }
+
+// NextTransformerInputs advances the electrical bus model once and
+// records each manual's selected transformer tap connections.
+// It does not calculate transformer voltage transfer or loading.
+func (e *ElectricalBusEngine) NextTransformerInputs(pair electrical.ManualTransformerPair) (electrical.TransformerInputs,electrical.TransformerInputs,error) {
+ if err:=pair.Validate();err!=nil {
+  return electrical.TransformerInputs{},electrical.TransformerInputs{},err
+ }
+ upper,lower:=e.NextBuses()
+ return pair.Inputs(upper,lower)
+}
