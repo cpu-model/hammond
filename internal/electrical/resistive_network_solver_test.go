@@ -31,3 +31,12 @@ func TestResistiveNetworkRejectsFloatingAndInvalid(t *testing.T) {
  _,err=SolveResistiveNetwork([]ResistiveBranch{{A:"a",B:"",Ohms:100}},map[string]float64{"a":math.NaN()})
  if err==nil {t.Fatal("accepted nonfinite source")}
 }
+
+func TestResistiveNetworkHighImpedanceDivider(t *testing.T) {
+ result,err:=SolveResistiveNetwork([]ResistiveBranch{
+  {A:"source",B:"tap",Ohms:1e12},
+  {A:"tap",B:"",Ohms:1e12},
+ },map[string]float64{"source":10})
+ if err!=nil {t.Fatalf("valid teraohm network rejected: %v",err)}
+ if math.Abs(result["tap"]-5)>1e-9 {t.Fatalf("high impedance divider: got %g, want 5",result["tap"])}
+}
