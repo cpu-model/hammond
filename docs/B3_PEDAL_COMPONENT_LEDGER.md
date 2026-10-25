@@ -54,3 +54,15 @@ The full schematic also places the two **PEDAL DRAWBARS** adjacent to the **T1 M
 - **Implementation consequence:** no new B3-sourced `PedalComponentValue` or `TerminalEdge` should be added yet. The existing synthetic RL tests remain synthetic.
 
 The diagram itself is a 1995 reproduction of the B3/C3 schematic; a reproduction date is not evidence that every circuit revision uses identical components.
+
+## Corrected primary-source cross-check — 2026-10-25
+
+A fresh direct inspection of the **actual PDF page image** (page index 71) and its embedded text extraction establishes that **L20 is printed in the pedal-switch area**. This supersedes the preceding tentative statement that L20 could not be confirmed. The printed sequence in the PDF's schematic text is `L20 R83 470`; it does **not** establish L20's inductance, circuit role, or endpoints. The label is therefore **confirmed**, but the electrical component model remains **unverified**.
+
+Source: https://www.lost-manuals.com/pdf/hammond--b-3--service--ID201.pdf#page=72
+
+The page image shows a **resistor ladder** above the pedal contacts. The resistors labeled R81/R84, R82/R85, and R83/R86 occupy three visible horizontal rows, while R80 appears on a left-hand vertical branch. The drawing is not equivalent to four independent pedal RL filters. The exact conductive junctions, source terminals, and output loading still require detailed tracing at higher resolution before entering a production netlist.
+
+**Additional directly visible circuit fact:** the pedal drawbars are drawn adjacent to T1 at the top left, while the resistor ladder is at the bottom left. Their apparent proximity on the same sheet does not by itself establish a complete end-to-end circuit path.
+
+The confirmed schematic label `L20` is not permission to assign it an arbitrary inductance in henries. No value for it has been established.
