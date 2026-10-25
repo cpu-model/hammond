@@ -39,10 +39,22 @@ func CompilePedalRLNetwork(sampleRate float64,topology PedalCircuitTopology,valu
  inductors:=[]InductiveBranch{}
  used:=map[string]bool{}
  ground:=root(groundTerminal)
+ // Fixed source names are reserved by the engine. Do not permit any
+ // source to be wired to ground or another source: the resulting ideal
+ // voltage constraints would conflict when bus signals differ.
+ sourceRoots:=map[string]string{}
+ for i:=0;i<4;i++ {
+  name:=fmt.Sprintf("pedal-bus-%d",i)
+  r:=root(name)
+  if r==ground {return nil,nil,fmt.Errorf("%s is shorted to ground",name)}
+  if other,ok:=sourceRoots[r];ok {return nil,nil,fmt.Errorf("%s is shorted to %s",name,other)}
+  sourceRoots[r]=name
+ }
  nodes:=map[string]string{}
  node:=func(terminal string)string {
   r:=root(terminal)
   if r==ground {return ""}
+  if name,ok:=sourceRoots[r];ok {return name}
   return r
  }
  for terminal:=range parent {nodes[terminal]=node(terminal)}
