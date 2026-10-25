@@ -81,3 +81,21 @@ func (e *ElectricalBusEngine) NextTransformerSources(pair electrical.ManualTrans
  boundary,err:=electrical.NewT1InputBoundary(t1,pedals)
  return t2,boundary,err
 }
+
+// RenderTransformerSources renders one electrical source record per
+// pedal input sample. The entire input block is validated before any
+// generator/contact state advances. This is not an audio mix.
+func (e *ElectricalBusEngine) RenderTransformerSources(pair electrical.ManualTransformerPair,pedals []electrical.PedalTransformerInputs,upper []electrical.TransformerInputs,lower []electrical.T1InputBoundary) error {
+ if len(upper)!=len(pedals)||len(lower)!=len(pedals) {
+  return fmt.Errorf("transformer output lengths must match pedal input length")
+ }
+ if err:=pair.Validate();err!=nil { return err }
+ for i,p:=range pedals {
+  if err:=p.Validate();err!=nil { return fmt.Errorf("pedal sample %d: %w",i,err) }
+ }
+ for i,p:=range pedals {
+  t2,t1,_:=e.NextTransformerSources(pair,p)
+  upper[i],lower[i]=t2,t1
+ }
+ return nil
+}
