@@ -14,6 +14,16 @@ func TestB3PedalAnalogComponentInventory(t *testing.T) {
  for _,name:=range []string{"R80","R81","R82","R83","R84","R85","R86","L20"} {
   if !seen[name] {t.Fatalf("missing %s",name)}
  }
+ expected:=map[string][2]string{"R80":{"panel-row-1-in","panel-row-2-in"},"L20":{"panel-row-2-in","panel-row-3-in"}}
+ for _,component:=range topology.Components {
+  terminals,ok:=expected[component.Designator]
+  if !ok {continue}
+  if component.TerminalA!=terminals[0]||component.TerminalB!=terminals[1] {
+   t.Fatalf("%s terminals = (%s,%s), want (%s,%s)",component.Designator,component.TerminalA,component.TerminalB,terminals[0],terminals[1])
+  }
+  delete(expected,component.Designator)
+ }
+ if len(expected)!=0 {t.Fatalf("missing ladder components: %v",expected)}
  for _,term:=range []string{"panel-row-1-in","panel-row-2-in","panel-row-3-in"} {
   connected,err:=topology.SignalPathExists(term,"panel-common-out")
   if err!=nil {t.Fatal(err)}
