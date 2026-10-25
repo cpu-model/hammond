@@ -16,6 +16,10 @@ type ResistiveBranch struct {
 // analysis. Fixed potentials model ideal voltage sources, including ground
 // as the empty node. Floating or singular networks are rejected.
 func SolveResistiveNetwork(branches []ResistiveBranch, fixed map[string]float64) (map[string]float64,error) {
+ return solveResistiveNodal(branches,fixed,nil)
+}
+
+func solveResistiveNodal(branches []ResistiveBranch,fixed map[string]float64,injections map[string]float64) (map[string]float64,error) {
  known:=map[string]float64{"":0}
  for n,v:=range fixed {
   if n==""&&v!=0 {return nil,fmt.Errorf("ground potential must be zero")}
@@ -49,6 +53,10 @@ func SolveResistiveNetwork(branches []ResistiveBranch, fixed map[string]float64)
     matrix[i][size]+=g*known[pair[1]]
    }
   }
+ }
+ for node,current:=range injections {
+  if math.IsNaN(current)||math.IsInf(current,0) {return nil,fmt.Errorf("nonfinite current injection at %q",node)}
+  if i,ok:=index[node];ok {matrix[i][size]+=current}
  }
  for k:=0;k<size;k++ {
   pivot:=k
