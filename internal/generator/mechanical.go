@@ -12,6 +12,7 @@ type MechanicalBank struct {
  phase [12]float64
  step [12]float64
  harmonic2 [91]float64
+ phaseOffset [91]float64
  secondAllowed [91]bool
 }
 
@@ -64,6 +65,17 @@ func (b *MechanicalBank) SetWheelSecondHarmonic(wheel int,level float64) error {
  return nil
 }
 
+// SetWheelPhaseOffset changes the initial phase of a wheel in cycles [0,1).
+// The shared gearing and frequency remain unchanged. Values are experimental.
+func (b *MechanicalBank) SetWheelPhaseOffset(wheel int,cycles float64) error {
+ if wheel<1||wheel>91 {return errors.New("wheel must be between 1 and 91")}
+ if math.IsNaN(cycles)||math.IsInf(cycles,0)||cycles<0||cycles>=1 {
+  return errors.New("wheel phase offset must be finite and in [0,1)")
+ }
+ b.phaseOffset[wheel-1]=cycles
+ return nil
+}
+
 // Next writes 91 phase-continuous signals. Every wheel advances
 // even when no keys are held. The 192-tooth wheels 85..91 use gear groups 5..11.
 func (b *MechanicalBank) Next(dst []float64) {
@@ -72,7 +84,7 @@ func (b *MechanicalBank) Next(dst []float64) {
   group := n%12
   teeth := 2 << (n/12)
   if n>=84 { group=n-84+5; teeth=192 }
-  cycles := math.Mod(float64(teeth)*b.phase[group],1)
+  cycles := math.Mod(float64(teeth)*b.phase[group]+b.phaseOffset[n],1)
   angle:=2*math.Pi*cycles
   level:=b.harmonic2[n]
   if !b.secondAllowed[n] {level=0}
