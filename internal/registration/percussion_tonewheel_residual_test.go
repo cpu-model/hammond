@@ -22,17 +22,23 @@ func TestTonewheelSwitchingResidual(t *testing.T) {
   frame:=make([]float64,91)
   var peak float64
   var previousResidual float64
+  var previousOscillator float64
   for i:=0;i<switchAt+600;i++ {
    frame[0]=math.Sin(2*math.Pi*frequency*float64(i)/sampleRate)
    if i==switchAt {m.SetPercussionDrawbarCut(true)}
    actual:=m.Mix(frame)
    // A constant gain of one would produce exactly frame[0].
    residual:=actual-frame[0]
-   if i>switchAt {
-    step:=math.Abs(residual-previousResidual)
+   if i>switchAt && i<switchAt+rampSamples+1 {
+    // Remove the derivative expected from the changing oscillator
+    // at the previous sample gain. The remainder is the gain change.
+    previousGain:=1.0
+    if previousOscillator!=0 {previousGain=1+previousResidual/previousOscillator}
+    step:=math.Abs((residual-previousResidual)-(previousGain-1)*(frame[0]-previousOscillator))
     if step>peak {peak=step}
    }
    previousResidual=residual
+   previousOscillator=frame[0]
   }
   return peak
  }
