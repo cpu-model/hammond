@@ -6,8 +6,7 @@ package electrical
 // external busbar, drawbar, filter, or ground wires terminate.
 //
 // The pairs are R81--R84, R82--R85, and R83--R86.
-// Their right-hand ends are modeled as sharing a rail, pending
-// independent verification of the junction on the original drawing.
+// The three right-hand ends join the same rail in the interpreted drawing.
 // Their left-hand inputs remain distinct; no other junctions are assumed.
 // This partial reconstruction is not yet a verified factory netlist.
 //
