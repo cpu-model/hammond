@@ -175,3 +175,13 @@ table remains experimental.
 The B3/C3 service manual itself contains TABLE III, Frequency Numbers Assigned to Keys and Pedals, with 25 pedal rows and eight harmonic columns. This is a more direct B3-specific source than the multi-model Figure 24 reference. Source: https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf
 
 Columns: fundamental, third harmonic, second harmonic, fourth, sixth, eighth, tenth, twelfth. The third-harmonic entries for pedals 8 through 12 are printed as dashes and must remain unconnected, not assigned invented frequency numbers. This table can be transcribed into PedalRouting after checking the actual contact order against the pedal wiring diagram. Do not assume the table column order matches physical contact order.
+
+## Source verification correction: Table III (2026-10-25)
+
+The previously cited 73-page B3/C3 schematic PDF was checked directly using its extracted text. Its pedal schematic is on PDF page 72 and explicitly says **TERMINALS TO GENERATOR (SEE PEDAL WIRING CHART)**. A search of that PDF did **not** find a text-extractable **TABLE III**. Consequently, the previous ledger claim that this particular PDF contains Table III with a complete 25-by-eight frequency matrix is **not verified** and must not be used as the basis for executable routing.
+
+The drawing does establish eight contacts under a typical pedal key, and references a separate pedal wiring chart. The chart itself must be located and inspected before importing numbers. The assertion that third-harmonic entries are absent for pedal keys 8 through 12 also remains unverified against a primary table; do not encode those absences yet.
+
+Evidence: https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf (schematic page 72, printed reference to pedal wiring chart).
+
+Implementation guard: leave `PedalRouting` as a validated, caller-supplied table with zero meaning unconnected/unspecified. Do not silently populate the table with speculative wheel assignments. The next task is to obtain a readable image of the separately referenced pedal wiring chart and transcribe each contact with its original printed source.
