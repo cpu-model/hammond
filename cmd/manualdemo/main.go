@@ -29,6 +29,7 @@ func main() {
  metrics:=flag.String("metrics","","optional JSON path for reproducible render measurements")
  wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
  percussionLevel:=flag.Float64("percussion-level",0,"experimental percussion level 0..1")
+ percussionPreset:=flag.String("percussion-preset","","fast-normal, fast-soft, slow-normal or slow-soft")
  percussionSeconds:=flag.Float64("percussion-seconds",0,"percussion exponential decay time constant in seconds; zero uses sample multiplier")
  percussionDecay:=flag.Float64("percussion-decay",0.9995,"per-sample decay 0..1 exclusive")
  percussionHarmonic:=flag.Int("percussion-harmonic",0,"key-dependent percussion harmonic 2 or 3; zero uses fixed wheel")
@@ -84,7 +85,18 @@ func main() {
  if err:=upper.SetKeyClick(*keyClick);err!=nil {log.Fatal(err)}
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
  for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
- if *percussionLevel!=0 {
+ if *percussionPreset!="" {
+  c:=engine.DefaultPercussionControls()
+  switch *percussionPreset {
+  case "fast-normal":c.Fast=true;c.Soft=false
+  case "fast-soft":c.Fast=true;c.Soft=true
+  case "slow-normal":c.Fast=false;c.Soft=false
+  case "slow-soft":c.Fast=false;c.Soft=true
+  default:log.Fatal("invalid percussion preset")
+  }
+  if *percussionHarmonic!=0 {c.Harmonic=*percussionHarmonic}
+  if err:=e.SetPercussionControls(0,c);err!=nil{log.Fatal(err)}
+ } else if *percussionLevel!=0 {
   if *percussionHarmonic!=0 {
    if *percussionSeconds>0 {
     if err:=e.SetTimedPercussion(0,*percussionHarmonic,*percussionLevel,*percussionSeconds);err!=nil {log.Fatal(err)}
@@ -128,10 +140,11 @@ func main() {
    PercussionWheel int `json:"percussion_wheel"`
    PercussionHarmonic int `json:"percussion_harmonic"`
    PercussionSeconds float64 `json:"percussion_seconds"`
+   PercussionPreset string `json:"percussion_preset"`
    Peak float64 `json:"peak"`
    RMS float64 `json:"rms"`
    OverRangeSamples int `json:"over_range_samples"`
-  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,*percussionHarmonic,*percussionSeconds,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
+  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,*percussionHarmonic,*percussionSeconds,*percussionPreset,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
   data,err:=json.MarshalIndent(record,"","  ")
   if err!=nil {log.Fatal(err)}
   if err:=os.WriteFile(filepath.Clean(*metrics),append(data,'\n'),0644);err!=nil {log.Fatal(err)}
