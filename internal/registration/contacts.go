@@ -28,6 +28,7 @@ type TimedManual struct {
  clickState float64
  percussionArmed bool
  percussionTrigger bool
+ percussionDrawbarCut bool
 }
 
 func NewTimedManual(route Routing, timing ContactTiming) (*TimedManual,error) {
@@ -101,7 +102,7 @@ func (m *TimedManual) Mix(frame []float64) float64 {
  var sum float64
  for key:=0;key<Keys;key++ {
   for contact:=0;contact<Harmonics;contact++ {
-   if !m.active[key][contact] { continue }
+   if !m.active[key][contact] || (m.percussionDrawbarCut && contact==8) { continue }
    wheel:=m.manual.route[key][contact]
    if wheel!=0 { sum+=m.manual.level[contact]*frame[wheel-1] }
   }
