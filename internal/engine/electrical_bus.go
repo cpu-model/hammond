@@ -22,6 +22,7 @@ type ElectricalBusEngine struct {
  pedalBuses *electrical.FourPedalBusNetwork
  experimentalPedalFilters *electrical.ExperimentalPedalBusFilters
  experimentalPedalCircuit *electrical.RLNodalNetwork
+ experimentalPedalNodes map[string]string
 }
 
 func NewElectricalBusEngine(sampleRate float64,upper,lower registration.Routing,upperTiming,lowerTiming registration.ContactTiming,upperBuses,lowerBuses [9]electrical.BusConfig) (*ElectricalBusEngine,error) {
@@ -178,6 +179,7 @@ func (e *ElectricalBusEngine) EnableExperimentalPedalCircuit(resistors []electri
  network,err:=electrical.NewRLNodalNetwork(e.sampleRate,resistors,inductors)
  if err!=nil {return err}
  e.experimentalPedalCircuit=network
+ e.experimentalPedalNodes=nil
  return nil
 }
 
@@ -185,6 +187,7 @@ func (e *ElectricalBusEngine) EnableExperimentalPedalCircuit(resistors []electri
 // inductor history. The original pedal bus voltages remain available.
 func (e *ElectricalBusEngine) DisableExperimentalPedalCircuit() {
  e.experimentalPedalCircuit=nil
+ e.experimentalPedalNodes=nil
 }
 
 // NextExperimentalPedalCircuit advances the mechanical bank once and
@@ -226,4 +229,29 @@ func (e *ElectricalBusEngine) NextExperimentalPedalCircuit(outputNode string) (u
  v,ok:=nodes[outputNode]
  if !ok {return upper,lower,0,fmt.Errorf("output node %q absent from circuit",outputNode)}
  return upper,lower,v,nil
+}
+
+// EnableCompiledPedalCircuit converts a documented topology into a shared
+// time-domain circuit and installs it atomically. The named ground terminal
+// and each component value must be supplied by the caller. No B3 wiring or
+// component values are invented by this adapter.
+func (e *ElectricalBusEngine) EnableCompiledPedalCircuit(topology electrical.PedalCircuitTopology,values []electrical.PedalComponentValue,groundTerminal string) error {
+ if e.pedal==nil {return fmt.Errorf("pedal network not configured")}
+ network,nodes,err:=electrical.CompilePedalRLNetwork(e.sampleRate,topology,values,groundTerminal)
+ if err!=nil {return err}
+ e.experimentalPedalCircuit=network
+ e.experimentalPedalNodes=nodes
+ return nil
+}
+
+// NextCompiledPedalCircuit accepts a documented terminal name and resolves
+// it to its electrical node before processing the next pedal sample.
+func (e *ElectricalBusEngine) NextCompiledPedalCircuit(outputTerminal string) (upper,lower [9]float64,output float64,err error) {
+ if e.experimentalPedalCircuit==nil||e.experimentalPedalNodes==nil {
+  return upper,lower,0,fmt.Errorf("compiled pedal circuit not configured")
+ }
+ node,ok:=e.experimentalPedalNodes[outputTerminal]
+ if !ok {return upper,lower,0,fmt.Errorf("unknown circuit terminal %q",outputTerminal)}
+ if node=="" {return upper,lower,0,fmt.Errorf("ground cannot be a signal output")}
+ return e.NextExperimentalPedalCircuit(node)
 }
