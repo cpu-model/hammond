@@ -19,6 +19,7 @@ type ElectricalBusEngine struct {
  pedal *registration.PedalContactsState
  pedalMapping registration.PedalBusRouting
  pedalBuses *electrical.FourPedalBusNetwork
+ experimentalPedalFilters *electrical.ExperimentalPedalBusFilters
 }
 
 func NewElectricalBusEngine(sampleRate float64,upper,lower registration.Routing,upperTiming,lowerTiming registration.ContactTiming,upperBuses,lowerBuses [9]electrical.BusConfig) (*ElectricalBusEngine,error) {
@@ -136,4 +137,32 @@ func (e *ElectricalBusEngine) NextAllBuses() (upper,lower [9]float64,pedals [4]f
  })
  if err!=nil { return upper,lower,pedals,err }
  return upper,lower,e.pedalBuses.Voltages(),nil
+}
+
+// EnableExperimentalPedalFilters installs four independent RL stages.
+// This is an explicitly synthetic experiment, not a B3 circuit model.
+// Validation completes before changing the engine's filter configuration.
+func (e *ElectricalBusEngine) EnableExperimentalPedalFilters(sampleRate float64,configs [4]electrical.PedalRLConfig) error {
+ if e.pedal==nil { return fmt.Errorf("pedal network not configured") }
+ filters,err:=electrical.NewExperimentalPedalBusFilters(sampleRate,configs)
+ if err!=nil { return err }
+ e.experimentalPedalFilters=filters
+ return nil
+}
+
+// DisableExperimentalPedalFilters restores raw pedal bus output.
+func (e *ElectricalBusEngine) DisableExperimentalPedalFilters() {
+ e.experimentalPedalFilters=nil
+}
+
+// NextExperimentalPedalBuses advances the shared tonewheel generator
+// exactly once and optionally processes the four pedal bus voltages.
+// Manual bus voltages remain unfiltered.
+func (e *ElectricalBusEngine) NextExperimentalPedalBuses() (upper,lower [9]float64,pedals [4]float64,err error) {
+ upper,lower,pedals,err=e.NextAllBuses()
+ if err!=nil { return upper,lower,pedals,err }
+ if e.experimentalPedalFilters!=nil {
+  pedals,err=e.experimentalPedalFilters.Next(pedals)
+ }
+ return upper,lower,pedals,err
 }
