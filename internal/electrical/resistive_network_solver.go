@@ -61,7 +61,11 @@ func solveResistiveNodal(branches []ResistiveBranch,fixed map[string]float64,inj
  for k:=0;k<size;k++ {
   pivot:=k
   for i:=k+1;i<size;i++ {if math.Abs(matrix[i][k])>math.Abs(matrix[pivot][k]) {pivot=i}}
-  if math.Abs(matrix[pivot][k])<1e-15 {return nil,fmt.Errorf("floating or singular resistive network")}
+  // Conductances can be extremely small in high-impedance circuits.
+  // Compare against the active column scale, not an absolute Siemens
+  // threshold that incorrectly rejects valid gigaohm networks.
+  columnMax:=math.Abs(matrix[pivot][k])
+  if columnMax==0||math.IsNaN(columnMax)||math.IsInf(columnMax,0) {return nil,fmt.Errorf("floating or singular resistive network")}
   matrix[k],matrix[pivot]=matrix[pivot],matrix[k]
   divisor:=matrix[k][k]
   for j:=k;j<=size;j++ {matrix[k][j]/=divisor}
