@@ -72,8 +72,18 @@ func (e *TimedEngine) NextPaths() electrical.ManualPaths {
  lower:=e.manuals[1].Mix(e.frame[:])
  if e.manuals[0].TakePercussionTrigger() {e.percussion[0].Trigger()}
  if e.manuals[1].TakePercussionTrigger() {e.percussion[1].Trigger()}
- upper+=e.percussion[0].Next(e.frame[:])
- lower+=e.percussion[1].Next(e.frame[:])
+ if e.percussion[0].harmonic==0 {
+  upper+=e.percussion[0].Next(e.frame[:])
+ } else {
+  signal:=e.manuals[0].PercussionSignal(e.frame[:],e.percussion[0].harmonic)
+  upper+=e.percussion[0].NextHarmonic(signal)
+ }
+ if e.percussion[1].harmonic==0 {
+  lower+=e.percussion[1].Next(e.frame[:])
+ } else {
+  signal:=e.manuals[1].PercussionSignal(e.frame[:],e.percussion[1].harmonic)
+  lower+=e.percussion[1].NextHarmonic(signal)
+ }
  return electrical.ManualPaths{Upper:upper,Lower:lower}
 }
 
@@ -98,4 +108,9 @@ func (e *TimedEngine) Render(dst []float64) {
 func (e *TimedEngine) SetPercussion(manual int,wheel int,level,decay float64) error {
  if manual<0||manual>=len(e.percussion) {return fmt.Errorf("manual index %d outside 0..1",manual)}
  return e.percussion[manual].Configure(wheel,level,decay)
+}
+
+func (e *TimedEngine) SetHarmonicPercussion(manual,harmonic int,level,decay float64) error {
+ if manual<0||manual>1 {return fmt.Errorf("manual index outside 0..1")}
+ return e.percussion[manual].ConfigureHarmonic(harmonic,level,decay)
 }
