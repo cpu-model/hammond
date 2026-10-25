@@ -12,11 +12,11 @@ func TestB3PedalAnalogRequiresExplicitValues(t *testing.T) {
  if err==nil {t.Fatal("B3 analog components compiled without physical values")}
 }
 
-func TestB3PedalAnalogFilterRemainsIsolated(t *testing.T) {
+func TestB3PedalAnalogFilterConnectsPanel(t *testing.T) {
  topology:=B3PedalAnalogComponents()
  for _,term:=range []string{"filter-R80-a","filter-R80-b","filter-L20-a","filter-L20-b"} {
   ok,err:=topology.SignalPathExists(term,"panel-common-out")
   if err!=nil {t.Fatal(err)}
-  if ok {t.Fatalf("unverified filter terminal %s connected to resistor panel",term)}
+  if !ok {t.Fatalf("filter terminal %s must reach resistor panel",term)}
  }
 }
