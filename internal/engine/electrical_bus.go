@@ -21,6 +21,7 @@ type ElectricalBusEngine struct {
  pedalMapping registration.PedalBusRouting
  pedalBuses *electrical.FourPedalBusNetwork
  experimentalPedalFilters *electrical.ExperimentalPedalBusFilters
+ experimentalPedalCircuit *electrical.RLNodalNetwork
 }
 
 func NewElectricalBusEngine(sampleRate float64,upper,lower registration.Routing,upperTiming,lowerTiming registration.ContactTiming,upperBuses,lowerBuses [9]electrical.BusConfig) (*ElectricalBusEngine,error) {
@@ -167,4 +168,42 @@ func (e *ElectricalBusEngine) NextExperimentalPedalBuses() (upper,lower [9]float
   pedals,err=e.experimentalPedalFilters.Next(pedals)
  }
  return upper,lower,pedals,err
+}
+
+// EnableExperimentalPedalCircuit installs a caller-defined, shared RL
+// network. The four ideal source nodes are pedal-bus-0 through pedal-bus-3;
+// outputNode names the observed node. This is not a verified B3 netlist.
+func (e *ElectricalBusEngine) EnableExperimentalPedalCircuit(resistors []electrical.ResistiveBranch,inductors []electrical.InductiveBranch) error {
+ if e.pedal==nil {return fmt.Errorf("pedal network not configured")}
+ network,err:=electrical.NewRLNodalNetwork(e.sampleRate,resistors,inductors)
+ if err!=nil {return err}
+ e.experimentalPedalCircuit=network
+ return nil
+}
+
+// DisableExperimentalPedalCircuit removes the optional circuit and its
+// inductor history. The original pedal bus voltages remain available.
+func (e *ElectricalBusEngine) DisableExperimentalPedalCircuit() {
+ e.experimentalPedalCircuit=nil
+}
+
+// NextExperimentalPedalCircuit advances the mechanical bank once and
+// drives the optional RL network with four independent pedal bus voltages.
+// It does not infer drawbar connections or transformer coupling.
+func (e *ElectricalBusEngine) NextExperimentalPedalCircuit(outputNode string) (upper,lower [9]float64,output float64,err error) {
+ if e.experimentalPedalCircuit==nil {return upper,lower,0,fmt.Errorf("experimental pedal circuit not configured")}
+ if outputNode=="" {return upper,lower,0,fmt.Errorf("output node required")}
+ upper,lower,pedals,err:=e.NextAllBuses()
+ if err!=nil {return upper,lower,0,err}
+ fixed:=map[string]float64{
+  "pedal-bus-0":pedals[0],
+  "pedal-bus-1":pedals[1],
+  "pedal-bus-2":pedals[2],
+  "pedal-bus-3":pedals[3],
+ }
+ nodes,err:=e.experimentalPedalCircuit.Next(fixed)
+ if err!=nil {return upper,lower,0,err}
+ v,ok:=nodes[outputNode]
+ if !ok {return upper,lower,0,fmt.Errorf("output node %q absent from circuit",outputNode)}
+ return upper,lower,v,nil
 }
