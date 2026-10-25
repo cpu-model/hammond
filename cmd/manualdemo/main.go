@@ -5,6 +5,8 @@ import (
  "log"
  "math"
  "os"
+ "strconv"
+ "strings"
 
  "github.com/cpu-model/hammond/internal/engine"
  "github.com/cpu-model/hammond/internal/registration"
@@ -22,6 +24,7 @@ func main() {
  gain:=flag.Float64("gain",0.02,"fixed linear output gain")
  step:=flag.Int("step",0,"additional contact closure delay per drawbar in samples (0..100)")
  harmonic2:=flag.Float64("harmonic2",0,"experimental second-harmonic level for all tonewheels (0..1)")
+ wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
  flag.Parse()
  if *key<1 || *key>61 || *seconds<1 || *seconds>30 { log.Fatal("key must be 1..61 and seconds 1..30") }
  if len(*drawbars)!=9 {log.Fatal("drawbars must contain nine digits 0..8")}
@@ -37,6 +40,20 @@ func main() {
  e,err:=engine.NewTimed(rate,routing,routing,timing,registration.ContactTiming{})
  if err!=nil { log.Fatal(err) }
  if err:=e.SetSecondHarmonic(*harmonic2);err!=nil {log.Fatal(err)}
+ if *wheelHarmonics!="" {
+  seen:=make(map[int]bool)
+  for _,item:=range strings.Split(*wheelHarmonics,",") {
+   parts:=strings.Split(item,":")
+   if len(parts)!=2 {log.Fatalf("invalid wheel-harmonics entry %q",item)}
+   wheel,err:=strconv.Atoi(parts[0])
+   if err!=nil {log.Fatalf("invalid wheel number %q",parts[0])}
+   level,err:=strconv.ParseFloat(parts[1],64)
+   if err!=nil {log.Fatalf("invalid harmonic level %q",parts[1])}
+   if seen[wheel] {log.Fatalf("duplicate wheel %d",wheel)}
+   seen[wheel]=true
+   if err:=e.SetWheelSecondHarmonic(wheel,level);err!=nil {log.Fatal(err)}
+  }
+ }
  upper,_:=e.Manual(0)
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
  for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
@@ -52,5 +69,5 @@ func main() {
  if err!=nil { log.Fatal(err) }
  if err:=wav.WriteMono16(f,rate,samples);err!=nil { _=f.Close();log.Fatal(err) }
  if err:=f.Close();err!=nil { log.Fatal(err) }
- log.Printf("wrote %s (key %d, registration %s, release %.3fs, gain %.4f, contact step %d samples, second harmonic %.3f, experimental mix)",*out,*key,*drawbars,*release,*gain,*step,*harmonic2)
+ log.Printf("wrote %s (key %d, registration %s, release %.3fs, gain %.4f, contact step %d samples, second harmonic %.3f, wheel overrides %q, experimental mix)",*out,*key,*drawbars,*release,*gain,*step,*harmonic2,*wheelHarmonics)
 }
