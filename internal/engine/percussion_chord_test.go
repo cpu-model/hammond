@@ -14,8 +14,8 @@ func TestHarmonicPercussionFollowsHeldKeysWithoutRetrigger(t *testing.T) {
  if err:=e.SetHarmonicPercussion(0,3,0.8,0.5);err!=nil{t.Fatal(err)}
  manual,_:=e.Manual(0)
  if err:=manual.Key(36,true);err!=nil{t.Fatal(err)}
- first:=e.NextPaths()
- if first.Upper==0{t.Fatal("initial percussion silent")}
+ e.NextPaths()
+ if math.Abs(e.percussion[0].envelope-0.4)>1e-12 {t.Fatal("initial percussion envelope did not trigger")}
  // After one sample the envelope must decay, not restart when a
  // second key joins the held chord.
  if err:=manual.Key(40,true);err!=nil{t.Fatal(err)}
