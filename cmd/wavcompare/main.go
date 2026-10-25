@@ -58,13 +58,44 @@ func main(){
  candidate:=flag.String("candidate","","candidate mono WAV")
  frequency:=flag.Float64("frequency",0,"fundamental frequency in Hz")
  harmonics:=flag.Int("harmonics",8,"number of harmonics to compare")
+ attackMS:=flag.Float64("attack-ms",50,"attack window length in milliseconds")
+ sustainStartMS:=flag.Float64("sustain-start-ms",200,"start of steady-state window in milliseconds")
+ sustainMS:=flag.Float64("sustain-ms",200,"steady-state window length in milliseconds")
  flag.Parse()
- if *reference==""||*candidate==""||math.IsNaN(*frequency)||math.IsInf(*frequency,0)||*frequency<=0||*harmonics<1||*harmonics>32 {fmt.Fprintln(os.Stderr,"invalid arguments");os.Exit(2)}
+ if *reference==""||*candidate==""||math.IsNaN(*frequency)||math.IsInf(*frequency,0)||*frequency<=0||*harmonics<1||*harmonics>32||*attackMS<=0||*sustainStartMS<0||*sustainMS<=0||math.IsNaN(*attackMS)||math.IsNaN(*sustainStartMS)||math.IsNaN(*sustainMS)||math.IsInf(*attackMS,0)||math.IsInf(*sustainStartMS,0)||math.IsInf(*sustainMS,0) {fmt.Fprintln(os.Stderr,"invalid arguments");os.Exit(2)}
  a,err:=readWAV(*reference);if err!=nil{fmt.Fprintln(os.Stderr,err);os.Exit(1)}
  b,err:=readWAV(*candidate);if err!=nil{fmt.Fprintln(os.Stderr,err);os.Exit(1)}
  if a.rate!=b.rate||len(a.samples)!=len(b.samples)||*frequency*float64(*harmonics)>=float64(a.rate)/2 {fmt.Fprintln(os.Stderr,"sample rates, durations or Nyquist constraint mismatch");os.Exit(1)}
+ window:=func(startMS,lengthMS float64)(int,int,error){
+  start:=startMS*float64(a.rate)/1000
+  length:=lengthMS*float64(a.rate)/1000
+  if start>float64(len(a.samples))||length>float64(len(a.samples))||start+length>float64(len(a.samples))||length<1 {return 0,0,errors.New("analysis window exceeds recording")}
+  i,j:=int(start),int(start+length)
+  if j<=i{return 0,0,errors.New("analysis window too short")}
+  return i,j,nil
+ }
+ attackStart,attackEnd,err:=window(0,*attackMS)
+ if err!=nil{fmt.Fprintln(os.Stderr,err);os.Exit(1)}
+ sustainStart,sustainEnd,err:=window(*sustainStartMS,*sustainMS)
+ if err!=nil{fmt.Fprintln(os.Stderr,err);os.Exit(1)}
  type partial struct {Harmonic int `json:"harmonic"`; FrequencyHz float64 `json:"frequency_hz"`; Reference float64 `json:"reference_amplitude"`; Candidate float64 `json:"candidate_amplitude"`}
- result:=struct{SampleRate uint32 `json:"sample_rate"`;Samples int `json:"samples"`;ReferenceRMS float64 `json:"reference_rms"`;CandidateRMS float64 `json:"candidate_rms"`;Harmonics []partial `json:"harmonics"`}{a.rate,len(a.samples),rms(a.samples),rms(b.samples),nil}
+ type windowResult struct {
+  StartMS float64 `json:"start_ms"`
+  DurationMS float64 `json:"duration_ms"`
+  ReferenceRMS float64 `json:"reference_rms"`
+  CandidateRMS float64 `json:"candidate_rms"`
+  Harmonics []partial `json:"harmonics"`
+ }
+ measure:=func(i,j int,startMS,durationMS float64)windowResult{
+  ar,br:=a.samples[i:j],b.samples[i:j]
+  w:=windowResult{StartMS:startMS,DurationMS:durationMS,ReferenceRMS:rms(ar),CandidateRMS:rms(br)}
+  for h:=1;h<=*harmonics;h++ {
+   freq:=float64(h)**frequency
+   w.Harmonics=append(w.Harmonics,partial{h,freq,magnitude(ar,freq,a.rate),magnitude(br,freq,b.rate)})
+  }
+  return w
+ }
+ result:=struct{Attack windowResult `json:"attack"`;Sustain windowResult `json:"sustain"`;SampleRate uint32 `json:"sample_rate"`;Samples int `json:"samples"`;ReferenceRMS float64 `json:"reference_rms"`;CandidateRMS float64 `json:"candidate_rms"`;Harmonics []partial `json:"harmonics"`}{measure(attackStart,attackEnd,0,*attackMS),measure(sustainStart,sustainEnd,*sustainStartMS,*sustainMS),a.rate,len(a.samples),rms(a.samples),rms(b.samples),nil}
  for h:=1;h<=*harmonics;h++ {
   f:=float64(h)**frequency
   result.Harmonics=append(result.Harmonics,partial{h,f,magnitude(a.samples,f,a.rate),magnitude(b.samples,f,b.rate)})
