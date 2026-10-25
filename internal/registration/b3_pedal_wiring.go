@@ -1,10 +1,13 @@
 package registration
 
-import "fmt"
+import (
+ "fmt"
+ "strings"
+)
 
 // PedalWiringEvidence binds an explicitly transcribed physical contact
 // permutation and busbar assignment to a cited wiring source. It does
-// not assert that a particular permutation is the B3 factory wiring.
+// not independently verify that the citation describes factory B3 wiring.
 type PedalWiringEvidence struct {
  ContactOrder PedalContactOrder
  Busbars PedalBusRouting
@@ -12,11 +15,12 @@ type PedalWiringEvidence struct {
 }
 
 // CompileB3PedalWiring produces a validated contact-level routing and
-// busbar mapping only when the caller supplies source-identified wiring.
+// busbar mapping only when the caller supplies source-identified wiring. A nonblank source
+// is an audit label, not proof of correctness.
 // The frequency values are taken from B3PedalHarmonics, while the
 // physical order and busbars must be established independently.
 func CompileB3PedalWiring(e PedalWiringEvidence) (PedalRouting, PedalBusRouting, error) {
- if e.Source == "" {
+ if strings.TrimSpace(e.Source) == "" {
   return PedalRouting{}, PedalBusRouting{}, fmt.Errorf("pedal wiring source is required")
  }
  if err := e.Busbars.Validate(); err != nil {
