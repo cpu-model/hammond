@@ -17,6 +17,4 @@ No Hammond resistor or transformer value has been inferred.
 **Limitations:** ideal sine generator outputs, ideal switched contacts,
 identical source resistance within each bus, simplified ground loading,
 and no electrical back-reaction onto a shared tonewheel pickup.
-The legacy `TimedManual.Mix` is invoked to advance events; its
-computed digital mix is discarded. A future dedicated contact-clock
-advance method would remove that redundant computation.
+The engine uses `TimedManual.AdvanceContacts` to update contact events without evaluating the legacy digital mix. The original `Mix` retains its sample timing for existing callers.
