@@ -109,12 +109,16 @@ func (e *TimedEngine) Render(dst []float64) {
 // SetPercussion configures one manual's experimental tonewheel percussion.
 func (e *TimedEngine) SetPercussion(manual int,wheel int,level,decay float64) error {
  if manual<0||manual>=len(e.percussion) {return fmt.Errorf("manual index %d outside 0..1",manual)}
- return e.percussion[manual].Configure(wheel,level,decay)
+ err:=e.percussion[manual].Configure(wheel,level,decay)
+ if err==nil && manual==0 {e.manuals[0].SetPercussionDrawbarCut(level>0)}
+ return err
 }
 
 func (e *TimedEngine) SetHarmonicPercussion(manual,harmonic int,level,decay float64) error {
  if manual<0||manual>1 {return fmt.Errorf("manual index outside 0..1")}
- return e.percussion[manual].ConfigureHarmonic(harmonic,level,decay)
+ err:=e.percussion[manual].ConfigureHarmonic(harmonic,level,decay)
+ if err==nil && manual==0 {e.manuals[0].SetPercussionDrawbarCut(level>0)}
+ return err
 }
 
 // SetTimedPercussion configures a key-dependent harmonic with an
