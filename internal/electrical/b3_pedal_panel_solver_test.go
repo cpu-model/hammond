@@ -20,7 +20,9 @@ func TestB3PedalResistorPanelSyntheticVoltageDivider(t *testing.T) {
  network,nodes,err:=CompilePedalRLNetwork(48000,topology,values,"chassis-ground")
  if err!=nil {t.Fatal(err)}
  result,err:=network.Next(map[string]float64{
-  nodes["panel-common-in"]:1,
+  nodes["panel-row-1-in"]:1,
+  nodes["panel-row-2-in"]:1,
+  nodes["panel-row-3-in"]:1,
   nodes["panel-common-out"]:0,
   "pedal-bus-0":0,"pedal-bus-1":0,"pedal-bus-2":0,"pedal-bus-3":0,
  })
