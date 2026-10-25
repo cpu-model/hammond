@@ -44,6 +44,20 @@ func (e *TimedEngine) SetWheelPhaseOffset(wheel int,cycles float64) error {
  return e.generator.SetWheelPhaseOffset(wheel,cycles)
 }
 
+// SetPhaseSeed assigns deterministic, distinct phase offsets to all 91 wheels.
+// The seed is an experimental comparison parameter, not a B3 calibration.
+func (e *TimedEngine) SetPhaseSeed(seed uint64) error {
+ for wheel:=1;wheel<=91;wheel++ {
+  x:=seed+uint64(wheel)*0x9e3779b97f4a7c15
+  x=(x^(x>>30))*0xbf58476d1ce4e5b9
+  x=(x^(x>>27))*0x94d049bb133111eb
+  x^=x>>31
+  cycles:=float64(x>>11)/9007199254740992.0
+  if err:=e.generator.SetWheelPhaseOffset(wheel,cycles);err!=nil{return err}
+ }
+ return nil
+}
+
 // SetSecondHarmonic applies the same experimental shape to all wheels.
 func (e *TimedEngine) SetSecondHarmonic(level float64) error {
  return e.generator.SetSecondHarmonic(level)
