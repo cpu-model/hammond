@@ -33,6 +33,17 @@ func (e *TimedEngine) Manual(index int) (*registration.TimedManual,error) {
  return e.manuals[index],nil
 }
 
+// SetWheelSecondHarmonic configures the experimental pickup waveform
+// of a specific shared tonewheel, numbered 1..91.
+func (e *TimedEngine) SetWheelSecondHarmonic(wheel int,level float64) error {
+ return e.generator.SetWheelSecondHarmonic(wheel,level)
+}
+
+// SetSecondHarmonic applies the same experimental shape to all wheels.
+func (e *TimedEngine) SetSecondHarmonic(level float64) error {
+ return e.generator.SetSecondHarmonic(level)
+}
+
 // NextPaths advances the shared generator once and preserves manual outputs.
 // Upper and lower are not electrically combined here.
 func (e *TimedEngine) NextPaths() electrical.ManualPaths {
