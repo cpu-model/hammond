@@ -44,14 +44,19 @@ func rms(x []float64)float64{
  for _,v:=range x{s+=v*v}
  return math.Sqrt(s/float64(len(x)))
 }
+// magnitude uses a Hann window with coherent-gain correction to reduce
+// leakage when the selected interval does not contain an integer number of cycles.
 func magnitude(x []float64,frequency float64,rate uint32)float64{
- var re,im float64
+ if len(x)<2{return 0}
+ var re,im,weightSum float64
  for i,v:=range x {
+  weight:=0.5-0.5*math.Cos(2*math.Pi*float64(i)/float64(len(x)-1))
   angle:=2*math.Pi*frequency*float64(i)/float64(rate)
-  re+=v*math.Cos(angle)
-  im-=v*math.Sin(angle)
+  re+=weight*v*math.Cos(angle)
+  im-=weight*v*math.Sin(angle)
+  weightSum+=weight
  }
- return 2*math.Hypot(re,im)/float64(len(x))
+ return 2*math.Hypot(re,im)/weightSum
 }
 func main(){
  reference:=flag.String("reference","","reference mono WAV")
