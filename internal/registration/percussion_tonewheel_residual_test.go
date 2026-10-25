@@ -29,7 +29,7 @@ func TestTonewheelSwitchingResidual(t *testing.T) {
    actual:=m.Mix(frame)
    // A constant gain of one would produce exactly frame[0].
    residual:=actual-frame[0]
-   if i>switchAt && i<switchAt+rampSamples+1 {
+   if i>=switchAt && i<switchAt+rampSamples+1 {
     // Remove the derivative expected from the changing oscillator
     // at the previous sample gain. The remainder is the gain change.
     previousGain:=1.0
