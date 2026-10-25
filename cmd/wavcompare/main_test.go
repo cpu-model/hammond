@@ -59,3 +59,17 @@ func TestMagnitudeNonBinCenteredTone(t *testing.T) {
   t.Fatalf("off-bin second harmonic leakage %.6f",got)
  }
 }
+
+func TestMagnitudeShortWindow(t *testing.T) {
+ if got:=magnitude(nil,1000,48000);got!=0 {t.Fatalf("empty magnitude %v",got)}
+ if got:=magnitude([]float64{0.5},1000,48000);got!=0 {t.Fatalf("single-sample magnitude %v",got)}
+}
+
+func TestMagnitudeRejectsDistantFrequencyLeakage(t *testing.T) {
+ const rate=48000
+ x:=make([]float64,4800)
+ for i:=range x{x[i]=0.3*math.Sin(2*math.Pi*1003.7*float64(i)/rate)}
+ if got:=magnitude(x,3000,rate);got>0.0001 {
+  t.Fatalf("distant frequency leakage %.9f",got)
+ }
+}
