@@ -2,9 +2,9 @@ package electrical
 
 // B3PedalFilterTopology captures only the two components identified
 // in the separate pedal-filter assembly: R80 and reactor L20.
-// The pedal-switch detail shows R80 and L20 connected in series.
-// The series branch's external connections are kept unresolved here;
-// in particular, no busbar or panel connection is inferred.
+// The R80/L20 junction is a provisional interpretation of the small
+// pedal-switch detail, not a fully traced factory netlist. The external
+// connections remain unresolved; no busbar or panel link is inferred.
 //
 // Source: Hammond B3/C3 Service Manual, pedal switch schematic,
 // https://synthmania.com/wp-content/uploads/2020/05/Hammond-Organ-B3-C3-Service-Manual.pdf
