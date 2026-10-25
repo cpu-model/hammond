@@ -1,12 +1,13 @@
 package electrical
 
-// B3PedalResistorPanelTopology represents only the three resistor pairs
-// clearly visible in the lower-left resistor panel of the 1995 B3/C3
+// B3PedalResistorPanelTopology represents a provisional interpretation of three resistor pairs
+// shown in the lower-left resistor panel of the 1995 B3/C3
 // schematic (PDF page 72). It deliberately does not assert where the
 // external busbar, drawbar, filter, or ground wires terminate.
 //
 // The pairs are R81--R84, R82--R85, and R83--R86.
-// Their right-hand ends share a rail in the interpreted schematic.
+// Their right-hand ends are modeled as sharing a rail, pending
+// independent verification of the junction on the original drawing.
 // Their left-hand inputs remain distinct; no other junctions are assumed.
 // This partial reconstruction is not yet a verified factory netlist.
 //
