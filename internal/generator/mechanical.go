@@ -40,7 +40,7 @@ func (b *MechanicalBank) Next(dst []float64) {
  for n:=0;n<91;n++ {
   group := n%12
   teeth := 2 << (n/12)
-  if n>=84 { group=n-84+4; teeth=192 }
+  if n>=84 { group=n-84+5; teeth=192 }
   cycles := math.Mod(float64(teeth)*b.phase[group],1)
   dst[n] = math.Sin(2*math.Pi*cycles)
  }
