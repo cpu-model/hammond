@@ -12,8 +12,9 @@ type PedalWiringEvidence struct {
  ContactOrder PedalContactOrder
  Busbars PedalBusRouting
  Source string
- // Verified is set only after independent comparison with the original
- // B3/C3 physical contact and busbar wiring diagram.
+ // Verified is an explicit caller attestation that the supplied mapping
+ // was checked against its cited source. It is not independently audited
+ // by this function; synthetic fixtures may set it in tests.
  Verified bool
 }
 
