@@ -39,3 +39,18 @@ func TestPedalCircuitEvidenceRejectsDisconnectedSubgraphs(t *testing.T) {
  e.FilterToDrawbarEdges[0].From="reactor-a"
  if err:=e.ValidateReconstruction();err!=nil { t.Fatalf("rejected connected synthetic graph: %v",err) }
 }
+
+func TestPedalCircuitEvidenceRejectsPartiallyFloatingOutputs(t *testing.T) {
+ e:=PedalCircuitEvidence{
+  SchematicURL:"synthetic schematic",
+  BusbarToFilterEdges:[]TerminalEdge{{From:"bus-1",To:"filter-a",Source:"fixture"}},
+  FilterToDrawbarEdges:[]TerminalEdge{
+   {From:"filter-a",To:"drawbar-1",Source:"fixture"},
+   {From:"floating",To:"drawbar-2",Source:"fixture"},
+  },
+  Reactor:Parameter{Value:1,Unit:"H",Provenance:ProvenanceMeasurement,Source:"synthetic measurement"},
+ }
+ if err:=e.ValidateReconstruction();err==nil { t.Fatal("accepted one disconnected output among connected outputs") }
+ e.FilterToDrawbarEdges[1].From="filter-a"
+ if err:=e.ValidateReconstruction();err!=nil { t.Fatalf("rejected fully connected fixture: %v",err) }
+}
