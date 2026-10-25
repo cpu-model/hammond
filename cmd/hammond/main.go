@@ -18,11 +18,10 @@ func main() {
  if *seconds <= 0 || *seconds > 120 { log.Fatal("seconds must be 1..120") }
  if *wheel < 1 || *wheel > instrument.TonewheelCount { log.Fatal("wheel must be 1..91") }
  const rate = 48000
- frequencies := instrument.MechanicalFrequencies()
- bank, err := generator.New(rate, frequencies[:])
+ bank, err := generator.NewMechanicalBank(rate)
  if err != nil { log.Fatal(err) }
  samples := make([]float64, rate * *seconds)
- frame := make([]float64, bank.Count())
+ frame := make([]float64, instrument.TonewheelCount)
  for i := range samples {
   bank.Next(frame)
   samples[i] = 0.25 * frame[*wheel-1]
@@ -31,5 +30,6 @@ func main() {
  if err != nil { log.Fatal(err) }
  if err := wav.WriteMono16(f, rate, samples); err != nil { _ = f.Close(); log.Fatal(err) }
  if err := f.Close(); err != nil { log.Fatal(err) }
- log.Printf("wrote %s (wheel %d, nominal %.3f Hz, ideal sine only)", *out, *wheel, frequencies[*wheel-1])
+ frequency, _ := instrument.MechanicalFrequency(*wheel)
+ log.Printf("wrote %s (wheel %d, nominal %.3f Hz, ideal sine, shared speed groups)", *out, *wheel, frequency)
 }
