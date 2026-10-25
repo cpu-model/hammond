@@ -29,6 +29,7 @@ func main() {
  metrics:=flag.String("metrics","","optional JSON path for reproducible render measurements")
  wheelHarmonics:=flag.String("wheel-harmonics","","comma-separated wheel:level overrides, e.g. 37:0.2,49:0.4")
  percussionLevel:=flag.Float64("percussion-level",0,"experimental percussion level 0..1")
+ percussionToggle:=flag.Float64("percussion-toggle",0,"time in seconds to disable percussion while key is held; zero means no toggle")
  ninthTransition:=flag.Float64("ninth-transition-ms",3,"upper ninth drawbar fade time in milliseconds")
  percussionPreset:=flag.String("percussion-preset","","fast-normal, fast-soft, slow-normal or slow-soft")
  percussionSeconds:=flag.Float64("percussion-seconds",0,"percussion exponential decay time constant in seconds; zero uses sample multiplier")
@@ -88,6 +89,7 @@ func main() {
  if err:=upper.SetKeyClick(*keyClick);err!=nil {log.Fatal(err)}
  if err:=upper.Key(*key-1,true);err!=nil { log.Fatal(err) }
  for d,ch:=range *drawbars {if err:=upper.SetDrawbar(d,int(ch-'0'));err!=nil {log.Fatal(err)}}
+ if *percussionToggle<0||*percussionToggle>=float64(*seconds)||math.IsNaN(*percussionToggle) {log.Fatal("invalid percussion toggle time")}
  if *percussionPreset!="" {
   c:=engine.DefaultPercussionControls()
   switch *percussionPreset {
@@ -117,6 +119,9 @@ func main() {
  releaseSample:=int(*release*rate)
  if *release==0 {releaseSample=len(samples)}
  for i:=range samples {
+  if *percussionToggle>0 && i==int(*percussionToggle*rate) {
+   if err:=e.SetHarmonicPercussion(0,3,0,0.9);err!=nil {log.Fatal(err)}
+  }
   if i==releaseSample {if err:=upper.Key(*key-1,false);err!=nil {log.Fatal(err)}}
   samples[i]=e.Next()
   samples[i]*=*gain
@@ -145,10 +150,11 @@ func main() {
    PercussionSeconds float64 `json:"percussion_seconds"`
    PercussionPreset string `json:"percussion_preset"`
    NinthTransitionMS float64 `json:"ninth_transition_ms"`
+   PercussionToggle float64 `json:"percussion_toggle"`
    Peak float64 `json:"peak"`
    RMS float64 `json:"rms"`
    OverRangeSamples int `json:"over_range_samples"`
-  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,*percussionHarmonic,*percussionSeconds,*percussionPreset,*ninthTransition,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
+  }{rate,*key,*drawbars,*seconds,*release,*gain,*step,*harmonic2,*wheelHarmonics,*wheelPhases,*phaseSeed,*keyClick,*percussionLevel,*percussionDecay,*percussionWheel,*percussionHarmonic,*percussionSeconds,*percussionPreset,*ninthTransition,*percussionToggle,peak,math.Sqrt(sumSquares/float64(len(samples))),clipped}
   data,err:=json.MarshalIndent(record,"","  ")
   if err!=nil {log.Fatal(err)}
   if err:=os.WriteFile(filepath.Clean(*metrics),append(data,'\n'),0644);err!=nil {log.Fatal(err)}
