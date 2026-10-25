@@ -139,3 +139,33 @@ observations*, not verified wiring-diagram endpoints.
 the resistor panel, pedal filter, pedal switch, drawbar base and T1 using
 the wiring diagram's printed color legend, then cross-check each resulting
 electrical net against the schematic before encoding it.
+
+## Independent generator-to-pedal boundary evidence (2026-10-25)
+
+The *B3/C3 Handy Wiring Guide* (Hammond Vintage, May 2015), page 4,
+explains the generator frequency-number boundary: generator outputs
+**1–12 are connected only to the pedal keyboard**, while **13–91
+serve the manual-keyboard wiring**. This is a documented allocation
+rule, not a complete pedal contact-to-generator mapping.
+
+Independent guide:
+https://www.hammondx66.com/wp-content/uploads/2022/09/Handy_Wiring_Guide_B3_C3.pdf
+
+The 1995 B3/C3 wiring diagram separately shows generator terminal
+numbers in consecutive order, and identifies pedal switch, resistor
+panel and pedal filter as distinct wiring destinations. Neither
+document establishes a one-to-one pedal-key-to-wheel assignment
+from these labels alone.
+
+**Implementation boundary:** keep the 92-slot pedal contact routing
+explicit and source-traceable. Do not assume that every pedal
+contact uses a wheel numbered 1–12, or that every generator wheel
+numbered 13–91 is excluded from pedal harmonics. The guide's
+statement concerns the generator's *exclusive* pedal-only low
+fundamentals, not the full set of harmonics a pedal contact can
+select.
+
+**Remaining work:** reconcile the pedal wiring chart's per-key
+contact assignments with the generator terminal numbering and
+the four busbar routes. Until then the existing pedal routing
+table remains experimental.
