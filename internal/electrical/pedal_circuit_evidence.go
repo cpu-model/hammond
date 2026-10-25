@@ -22,6 +22,23 @@ func (e PedalCircuitEvidence) ValidateReconstruction() error {
  edges=append(edges,e.BusbarToFilterEdges...)
  edges=append(edges,e.FilterToDrawbarEdges...)
  if err:=(TerminalGraph{Edges:edges}).Validate();err!=nil { return fmt.Errorf("pedal netlist: %w",err) }
+ // Every filter-side connection must join the busbar-side subgraph.
+ // A list of individually sourced but disconnected edges is not a circuit.
+ busNodes:=map[string]bool{}
+ for _,edge:=range e.BusbarToFilterEdges {
+  busNodes[edge.From]=true
+  busNodes[edge.To]=true
+ }
+ connected:=false
+ for _,edge:=range e.FilterToDrawbarEdges {
+  for node:=range busNodes {
+   linked,err:=(TerminalGraph{Edges:edges}).Connected(node,edge.From)
+   if err!=nil { return fmt.Errorf("pedal netlist: %w",err) }
+   if linked { connected=true;break }
+  }
+  if connected { break }
+ }
+ if !connected { return fmt.Errorf("pedal filter-to-drawbar netlist disconnected from busbars") }
  if err:=e.Reactor.Validate();err!=nil { return fmt.Errorf("pedal reactor: %w",err) }
  if e.Reactor.Unit!="H"||!positiveFinite(e.Reactor.Value) {
   return fmt.Errorf("pedal reactor requires positive inductance in H")
