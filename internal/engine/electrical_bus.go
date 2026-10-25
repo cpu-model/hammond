@@ -130,7 +130,7 @@ func (e *ElectricalBusEngine) NextAllBuses() (upper,lower [9]float64,pedals [4]f
  if e.pedal==nil { return upper,lower,pedals,fmt.Errorf("pedal network not configured") }
  upper,lower=e.NextBuses()
  e.pedalBuses.BeginSample()
- err:=e.pedal.ForEachClosedBusContact(e.pedalMapping,func(_,_,bus,wheel int) {
+ err=e.pedal.ForEachClosedBusContact(e.pedalMapping,func(_,_,bus,wheel int) {
   // Routing and bus configuration were validated at construction.
   _=e.pedalBuses.AddClosedContact(bus,e.frame[wheel-1])
  })
