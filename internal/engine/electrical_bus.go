@@ -16,6 +16,9 @@ type ElectricalBusEngine struct {
  manuals [2]*registration.TimedManual
  buses [2]*electrical.NineBusNetwork
  frame [91]float64
+ pedal *registration.PedalContactsState
+ pedalMapping registration.PedalBusRouting
+ pedalBuses *electrical.FourPedalBusNetwork
 }
 
 func NewElectricalBusEngine(sampleRate float64,upper,lower registration.Routing,upperTiming,lowerTiming registration.ContactTiming,upperBuses,lowerBuses [9]electrical.BusConfig) (*ElectricalBusEngine,error) {
@@ -98,4 +101,39 @@ func (e *ElectricalBusEngine) RenderTransformerSources(pair electrical.ManualTra
   upper[i],lower[i]=t2,t1
  }
  return nil
+}
+
+// NewElectricalBusEngineWithPedals adds an experimental four-bus pedal
+// switch network to the same generator used by both manuals.
+func NewElectricalBusEngineWithPedals(sampleRate float64,upper,lower registration.Routing,upperTiming,lowerTiming registration.ContactTiming,upperBuses,lowerBuses [9]electrical.BusConfig,pedalRouting registration.PedalRouting,pedalMapping registration.PedalBusRouting,pedalBuses [4]electrical.BusConfig) (*ElectricalBusEngine,error) {
+ if err:=pedalMapping.Validate();err!=nil { return nil,err }
+ p,err:=registration.NewPedalContactsState(pedalRouting)
+ if err!=nil { return nil,err }
+ pb,err:=electrical.NewFourPedalBusNetwork(pedalBuses)
+ if err!=nil { return nil,err }
+ e,err:=NewElectricalBusEngine(sampleRate,upper,lower,upperTiming,lowerTiming,upperBuses,lowerBuses)
+ if err!=nil { return nil,err }
+ e.pedal,e.pedalMapping,e.pedalBuses=p,pedalMapping,pb
+ return e,nil
+}
+
+// Pedals returns the switch controller, or an error for manual-only engines.
+func (e *ElectricalBusEngine) Pedals() (*registration.PedalContactsState,error) {
+ if e.pedal==nil { return nil,fmt.Errorf("pedal network not configured") }
+ return e.pedal,nil
+}
+
+// NextAllBuses advances the shared generator exactly once and returns
+// independent manual and pedal voltages. No pedal reactor, drawbar
+// or T1 coupling is simulated.
+func (e *ElectricalBusEngine) NextAllBuses() (upper,lower [9]float64,pedals [4]float64,error) {
+ if e.pedal==nil { return upper,lower,pedals,fmt.Errorf("pedal network not configured") }
+ upper,lower=e.NextBuses()
+ e.pedalBuses.BeginSample()
+ err:=e.pedal.ForEachClosedBusContact(e.pedalMapping,func(_,_,bus,wheel int) {
+  // Routing and bus configuration were validated at construction.
+  _=e.pedalBuses.AddClosedContact(bus,e.frame[wheel-1])
+ })
+ if err!=nil { return upper,lower,pedals,err }
+ return upper,lower,e.pedalBuses.Voltages(),nil
 }
