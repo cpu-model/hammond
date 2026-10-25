@@ -10,13 +10,16 @@ Hammond B3/C3 wiring guide:
 https://www.hammondx66.com/wp-content/uploads/2022/09/Handy_Wiring_Guide_B3_C3.pdf
 
 The mixer supports key-down/key-up and nine drawbar positions 0..8,
-but its linear level = position/8 is **not** a verified Hammond
-drawbar attenuation curve. It is a temporary engineering interface,
-not an acoustic authenticity claim.
+and now uses a nominal 3 dB-per-step amplitude attenuation law.
+This matches the documented approximate drawbar step progression,
+but **does not simulate** the loaded mixing transformer, resistance wires,
+or electrical interactions between simultaneously pressed keys.
+The 3 dB curve is a calibrated starting approximation, not a complete
+circuit-derived response.
 
 The manual does not own or advance oscillators. All manuals and pedals
 must share one continuously running mechanical generator.
 
 Next: transcribe the factory contact map and foldback, implement the
-resistive drawbar mixing network, add second manual and pedals, and
+resistive drawbar mixing network and contact timing, add second manual and pedals, and
 integrate a playable input/output adapter.
