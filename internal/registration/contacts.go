@@ -132,3 +132,19 @@ func (m *TimedManual) TakePercussionTrigger() bool {
  m.percussionTrigger=false
  return triggered
 }
+
+// PercussionSignal sums the shared tonewheel outputs for held keys at
+// the second (harmonic 2) or third (harmonic 3) percussion pitch.
+// It bypasses drawbar levels and uses the documented key routing.
+func (m *TimedManual) PercussionSignal(frame []float64,harmonic int) float64 {
+ if len(frame)<91 {panic("registration: generator frame too short")}
+ contact:=3
+ if harmonic==3 {contact=4} else if harmonic!=2 {return 0}
+ var sum float64
+ for key,held:=range m.requested {
+  if !held {continue}
+  wheel:=m.manual.route[key][contact]
+  if wheel!=0 {sum+=frame[wheel-1]}
+ }
+ return sum
+}
