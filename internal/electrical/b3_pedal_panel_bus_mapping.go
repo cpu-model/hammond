@@ -18,8 +18,11 @@ func ConnectPedalPanelInputs(panel PedalCircuitTopology, buses [3]int, source st
   Wires:append([]TerminalEdge(nil),panel.Wires...),
   Components:append([]PedalComponentPlacement(nil),panel.Components...),
  }
+ used:=map[int]bool{}
  for row,bus:=range buses {
   if bus<0||bus>3 {return PedalCircuitTopology{},fmt.Errorf("panel row %d: invalid pedal bus %d",row+1,bus)}
+  if used[bus] {return PedalCircuitTopology{},fmt.Errorf("pedal bus %d assigned to multiple panel rows",bus)}
+  used[bus]=true
   result.Wires=append(result.Wires,TerminalEdge{
    From:fmt.Sprintf("panel-row-%d-in",row+1),
    To:fmt.Sprintf("pedal-bus-%d",bus),
