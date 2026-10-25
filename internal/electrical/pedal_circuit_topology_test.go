@@ -30,3 +30,24 @@ func TestPedalComponentTopologyRejectsDuplicateAndInvalidComponents(t *testing.T
  topology.Components[0].Kind="unknown"
  if err:=topology.Validate();err==nil {t.Fatal("accepted unknown component")}
 }
+
+func TestPedalSignalPathTraversesImpedanceWithoutShortingIt(t *testing.T) {
+ topology:=PedalCircuitTopology{
+  Wires:[]TerminalEdge{
+   {From:"bus",To:"R80.a",Source:"synthetic fixture"},
+   {From:"R80.b",To:"L20.a",Source:"synthetic fixture"},
+   {From:"L20.b",To:"drawbar",Source:"synthetic fixture"},
+  },
+  Components:[]PedalComponentPlacement{
+   {Designator:"R80",Kind:PedalResistor,TerminalA:"R80.a",TerminalB:"R80.b",Source:"synthetic fixture"},
+   {Designator:"L20",Kind:PedalReactor,TerminalA:"L20.a",TerminalB:"L20.b",Source:"synthetic fixture"},
+  },
+ }
+ signal,err:=topology.SignalPathExists("bus","drawbar")
+ if err!=nil||!signal {t.Fatalf("signal path not traced through components: %v",err)}
+ conductive,err:=(TerminalGraph{Edges:topology.Wires}).Connected("bus","drawbar")
+ if err!=nil||conductive {t.Fatalf("components incorrectly treated as short circuit: %v",err)}
+ topology.Wires[2].To="isolated"
+ signal,err=topology.SignalPathExists("bus","drawbar")
+ if err!=nil||signal {t.Fatalf("accepted disconnected drawbar: %v",err)}
+}
